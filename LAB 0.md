@@ -178,6 +178,7 @@ Output confirmed local test identity (`Account: 000000000000`, `Arn: arn:aws:iam
 
 * **Result:** AWS CLI is successfully routed to interact with LocalStack.
 * **Evidence:**
+<img width="427" height="331" alt="Screenshot 2026-07-27 201321" src="https://github.com/user-attachments/assets/29649ec1-5220-43d8-b324-a81b367659b2" />
 
 ---
 
