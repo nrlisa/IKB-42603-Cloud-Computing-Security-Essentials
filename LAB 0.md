@@ -91,9 +91,13 @@ Kustomize Version: v5.8.1
 
 ## 4. Helper Tools
 
-Git Bash was installed from the official repository to provide a Unix-like terminal environment for executing lab scripts and commands.
+In addition to Git Bash for a Unix-like terminal environment, the following helper tools were checked:
 
-* **Result:** Helper terminal environment is fully operational.
+*   **OpenSSL:** Available as part of Git Bash.
+*   **oathtool:** To be used for generating MFA/TOTP codes.
+*   **Trivy:** To be run via Docker for vulnerability scanning.
+
+* **Result:** Helper tools are identified and available for use in subsequent labs.
 * **Evidence:**
 <div align="center">
 <img width="665" height="191" alt="Screenshot 2026-07-29 120411" src="https://github.com/user-attachments/assets/68c53674-f8db-4b0b-8d40-16403998e813" />
@@ -212,3 +216,7 @@ Output confirmed local test identity (`Account: 000000000000`, `Arn: arn:aws:iam
 ## Conclusion
 
 The Lab 0 environment setup is complete and fully verified. All required tooling—including Docker, AWS CLI, `kind`, `kubectl`, Git Bash, LocalStack, and target endpoints—is configured and functioning as expected.
+
+## Challenges Encountered & Lessons Learned
+
+One challenge was making sure each tool was installed correctly and that the services were working as expected. Another challenge was confirming that LocalStack and the local Kubernetes cluster were running properly before moving to the next step. The main lesson learned was that careful verification and clear documentation are very important when setting up a lab environment.
