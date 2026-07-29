@@ -42,8 +42,10 @@ This message shows that your installation appears to be working correctly.
 
 * **Result:** Docker Engine is operational and successfully pulling and running containers.
 * **Evidence:**
+<div align="center">
 <img width="612" height="55" alt="Screenshot 2026-07-29 115703" src="https://github.com/user-attachments/assets/e3f28b15-26f0-499d-9547-2cbaf4719f8e" />
 <img width="653" height="402" alt="Screenshot 2026-07-29 115857" src="https://github.com/user-attachments/assets/478fdccd-4ad2-46e1-9534-92ef7f85596a" />
+</div>
 
 ---
 
@@ -58,8 +60,10 @@ aws-cli/2.36.8 Python/3.14.6 Linux/6.18.12+kali-amd64 exe/x86_64.kali.2026
 
 * **Result:** AWS CLI v2 is installed and accessible via system path.
 * **Evidence:**
+<div align="center">
 <img width="252" height="135" alt="Screenshot 2026-07-29 120305" src="https://github.com/user-attachments/assets/65386925-0e28-4d28-bab4-1a202d84abdd" />
 <img width="615" height="55" alt="Screenshot 2026-07-29 120140" src="https://github.com/user-attachments/assets/32ca5473-685d-434c-82e7-54eac411003e" />
+</div>
 
 ---
 
@@ -79,7 +83,9 @@ Kustomize Version: v5.8.1
 
 * **Result:** Both `kind` and `kubectl` are configured and ready for local cluster operations.
 * **Evidence:**
+<div align="center">
 <img width="252" height="135" alt="Screenshot 2026-07-29 120305" src="https://github.com/user-attachments/assets/14249332-6b29-4340-8725-aeb0fb4e1e93" />
+</div>
 
 ---
 
@@ -89,7 +95,9 @@ Git Bash was installed from the official repository to provide a Unix-like termi
 
 * **Result:** Helper terminal environment is fully operational.
 * **Evidence:**
+<div align="center">
 <img width="665" height="191" alt="Screenshot 2026-07-29 120411" src="https://github.com/user-attachments/assets/68c53674-f8db-4b0b-8d40-16403998e813" />
+</div>
 
 ---
 
@@ -122,9 +130,11 @@ docker rm -f localstack
 
 * **Result:** LocalStack container runs reliably, passes health checks, and is visible within Docker Desktop.
 * **Evidence:**
+<div align="center">
 <img width="612" height="55" alt="Screenshot 2026-07-29 115703" src="https://github.com/user-attachments/assets/5c16c78e-62c1-46ec-898e-72716326c49c" />
 <img width="786" height="388" alt="Screenshot 2026-07-27 195057" src="https://github.com/user-attachments/assets/0dc15af4-9538-43bf-924c-cff73a142a3f" />
 <img width="577" height="95" alt="Screenshot 2026-07-27 194732" src="https://github.com/user-attachments/assets/0b74d738-ef7f-414a-baee-d7f5029f4c7f" />
+</div>
 
 
 
@@ -156,10 +166,11 @@ kind delete cluster --name ccse
 
 * **Result:** Kubernetes local cluster creation, node inspection, and tear-down verified successfully.
 * **Evidence:**
-*
+<div align="center">
 <img width="768" height="172" alt="Screenshot 2026-07-27 201151" src="https://github.com/user-attachments/assets/7e5b7c69-c07c-402d-bc8a-18692f78ff42" />
 
 <img width="302" height="63" alt="Screenshot 2026-07-27 201208" src="https://github.com/user-attachments/assets/f767c6ff-81f0-4062-81f5-71bfbdc2e5c1" />
+</div>
 
 ---
 
@@ -192,7 +203,9 @@ Output confirmed local test identity (`Account: 000000000000`, `Arn: arn:aws:iam
 
 * **Result:** AWS CLI is successfully routed to interact with LocalStack.
 * **Evidence:**
+<div align="center">
 <img width="427" height="331" alt="Screenshot 2026-07-27 201321" src="https://github.com/user-attachments/assets/29649ec1-5220-43d8-b324-a81b367659b2" />
+</div>
 
 ---
 
