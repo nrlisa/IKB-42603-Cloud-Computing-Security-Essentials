@@ -406,17 +406,6 @@ Evidence: <div align="left">
 <img alt="Screenshot 2026-07-29 115703" src="evidence lab1/verify.png">
 ---
 
-## Deliverables Checklist
-
-- [ ] Screenshot: `sts get-caller-identity` output
-- [ ] Screenshot: `get-group Admins` showing `CloudAdmin_YOURNAME` as member
-- [ ] Screenshot: `list-attached-user-policies` for Analyst (read-only policy only)
-- [ ] Screenshot: Three `kubectl auth can-i` results (YES / NO / NO)
-- [ ] Short-answer questions (Q1–Q5) answered in report
-- [ ] `kubectl get rolebinding dev-user-binding -n dev -o yaml` output pasted
-
----
-
 ## Short-Answer Questions
 
 **Q1. Why is attaching policies to groups better than attaching them directly to users?**
