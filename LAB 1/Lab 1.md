@@ -13,6 +13,28 @@ LocalStack IAM was used to simulate AWS Identity and Access Management functions
 Kubernetes RBAC was used to implement authorization control by defining roles and assigning permissions throug# Lab 1 — Cloud Account Security, Identity & Access Management
 
 ---
+## Evidence Folder
+
+All screenshots used for this report are stored in the `evidence lab1` folder.
+
+| Evidence File | Purpose |
+|---|---|
+| `earlysetup.png` | `sts get-caller-identity` output confirming CLI is talking to LocalStack |
+| `ev1task2.png` | Commands for creating the `Admins` group, attaching the admin policy, creating the admin user and adding it to the group |
+| `ev1task2.1.png` | `Admins` group creation / policy attachment output |
+| `ev1task2.2.png` | `CloudAdmin_Lisa` membership verification in `Admins` group |
+| `ev1task3.1.png` | `Analyst_Raisha` read-only user creation output |
+| `ev1task3.2.png` | `AmazonS3ReadOnlyAccess` policy attached to `Analyst_Raisha` |
+| `task4.1.png` | Access key creation for `Analyst_Raisha` |
+| `task4.2.png` | Access key listing and deactivation (rotation) for `Analyst_Raisha` |
+| `setup1.png` | kind Kubernetes cluster creation |
+| `setup2.png` | `kubectl cluster-info` / `kubectl get nodes` verification |
+| `task5.png` | `dev` and `prod` namespace creation |
+| `task6.1.png` | Service account `devsofia` creation |
+| `task6.2.png` | Role `pod-reader` creation |
+| `task6.3.png` | RoleBinding `dev-user-binding` creation |
+| `task7.png` | RBAC `kubectl auth can-i` authorization test results |
+| `verify.png` | RoleBinding YAML verification output |
 
 ## Overview
 
@@ -204,9 +226,6 @@ Evidence: <div align="left">
 <img alt="Screenshot 2026-07-29 115703" src="evidence lab1/ev1task3.1.png">
 <img alt="Screenshot 2026-07-29 115703" src="evidence lab1/ev1task3.2.png">
 
-**Report answer — Blast radius:**
-If the Analyst account's credentials were stolen, the damage is limited because the account can only *read* S3 data — it has no permission to create, modify, delete, or exfiltrate-by-altering any resource, and no permissions outside S3 at all. An attacker with these credentials could view data but couldn't destroy it, plant backdoors, spin up new resources, or pivot into other services. Compare this to a stolen `CloudAdmin` (AdministratorAccess) account, where the attacker could do *anything* — delete all resources, create new IAM users for persistence, exfiltrate everything, or run up billing. This difference in "how much damage is possible from this one compromised identity" is exactly what **blast-radius reduction** means: scoping permissions tightly shrinks the worst-case outcome of any single credential leak.
-
 ---
 
 ## Task 4 — Credential Hygiene & Access Keys
@@ -218,7 +237,6 @@ aws $EP iam create-access-key --user-name Analyst_Raisha
 **Why:** Generates a programmatic Access Key ID + Secret Access Key pair so the Analyst identity could authenticate via CLI/SDK rather than a console password. This output must be saved immediately — the secret key is not retrievable again later.
 **Result:** An access key was created for `Analyst_Raisha`.
 
-Security note: the secret access key is not repeated in this report. In real cloud environments, access keys must not be committed to repositories, shared in screenshots, or stored in plaintext.
 
 ```bash
 # 4.2 List access keys (note the AccessKeyId and status)
@@ -233,7 +251,7 @@ aws $EP iam list-access-keys --user-name Analyst_Raisha
     "AccessKeyMetadata": [
         {
             "UserName": "Analyst_Raisha",
-            "AccessKeyId": "LKIAQAAAAAAANMJV6XA3",
+            "AccessKeyId": "<PASTE_KEY_ID>",
             "Status": "Active",
             "CreateDate": "2026-07-29T05:29:06.789002+00:00"
         }
@@ -252,8 +270,6 @@ Evidence: <div align="left">
 <img alt="Screenshot 2026-07-29 115703" src="evidence lab1/task4.2.png">
 
 **Why:** Simulates key rotation by disabling the key without deleting it outright. In practice, rotation means: issue a new key, update systems to use it, then deactivate/delete the old one — this limits how long any single long-lived credential remains valid and usable if leaked.
-
-**Report note:** Long-lived access keys are risky because, unlike role-based temporary credentials, they don't expire on their own — if leaked (e.g. committed to a public repo), they remain usable indefinitely until someone notices and manually deactivates them. This is why AWS best practice prefers short-lived roles over standing access keys wherever possible.
 
 *End of Session A.*
 
