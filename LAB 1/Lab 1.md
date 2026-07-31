@@ -24,7 +24,7 @@ This lab is split into two sessions:
 Nothing in this lab touches a real cloud provider — LocalStack emulates AWS APIs on `localhost:4566`, and `kind` runs a throwaway Kubernetes cluster inside Docker on the local machine.
 
 ---
-
+## Session A (Week 1) — Cloud Identity with LocalStack 
 ## Environment Setup
 
 ```bash
@@ -57,9 +57,20 @@ aws configure set region us-east-1
 # Test: this talks to LocalStack, NOT real AWS
 aws --endpoint-url=http://localhost:4566 sts get-caller-identity
 ```
-**Why:** `--endpoint-url` redirects the AWS CLI away from real AWS servers and toward the local LocalStack container. `sts get-caller-identity` returns the identity (account/user ARN) the CLI is currently operating as — this is the first required deliverable screenshot, proving which identity subsequent commands run under.
+**Why:** `--endpoint-url` redirects the AWS CLI away from real AWS servers and toward the local LocalStack container. `sts get-caller-identity` returns the identity (account/user ARN) the CLI is currently operating as   identity subsequent commands run under.
 
-📸 **Screenshot 1:** Output of `sts get-caller-identity`
+**Output:**
+```json
+{
+    "UserId": "000000000000",
+    "Account": "000000000000",
+    "Arn": "arn:aws:iam::000000000000:root"
+}
+```
+The account ID `000000000000` confirms the commands were executed against LocalStack, not real AWS.
+
+Evidence: <div align="left">
+<img alt="Screenshot 2026-07-29 115703" src="evidence lab1/earlysetup.png">
 
 ---
 
@@ -88,20 +99,42 @@ aws $EP iam create-group --group-name Admins
 aws $EP iam attach-group-policy --group-name Admins \
     --policy-arn arn:aws:iam::aws:policy/AdministratorAccess
 ```
+**Result:** The group Admins was created successfully.
 **Why:** Creates an `Admins` group and attaches AWS's managed `AdministratorAccess` policy **to the group itself**, not to any individual user. This is the core best practice: permissions live on the group; users simply join or leave it.
+
+Verification of the attached policy:
+
+```bash
+aws $EP iam list-attached-group-policies --group-name Admins
+```
+
+**Output:**
+```json
+{
+    "AttachedPolicies": [
+        {
+            "PolicyName": "AdministratorAccess",
+            "PolicyArn": "arn:aws:iam::aws:policy/AdministratorAccess"
+        }
+    ]
+}
+```
+This confirms `AdministratorAccess` is attached to the `Admins` group.
 
 ```bash
 # 2.2 Create your personal admin user (replace YOURNAME)
-aws $EP iam create-user --user-name CloudAdmin_YOURNAME
+aws $EP iam create-user --user-name CloudAdmin_Lisa
 ```
 **Why:** Creates a dedicated, named IAM user to replace root for daily administrative work. Using a personal, named identity (instead of root) means actions are attributable to a specific person and root credentials never need to be exposed.
+**Result:** The user `CloudAdmin_Lisa` was created successfully.
 
 ```bash
 # 2.3 Put the user in the group (permissions flow from the group)
 aws $EP iam add-user-to-group --group-name Admins \
-    --user-name CloudAdmin_YOURNAME
+    --user-name CloudAdmin_Lisa
 ```
-**Why:** Membership in `Admins` is what actually grants `CloudAdmin_YOURNAME` the AdministratorAccess permissions — the user itself has no policy attached directly.
+**Result:** The group Admins was created successfully.
+**Why:** Membership in `Admins` is what actually grants `CloudAdmin_Lisa` the AdministratorAccess permissions — the user itself has no policy attached directly.
 
 ```bash
 # 2.4 Verify the membership
@@ -109,32 +142,67 @@ aws $EP iam get-group --group-name Admins
 ```
 **Why:** Confirms the user was correctly added to the group and lists the group's attached policy, providing evidence the setup worked as intended.
 
-📸 **Screenshot 2:** `get-group Admins` output showing `CloudAdmin_YOURNAME` as a member.
+**Output (summary):**
+```json
+{
+    "Users": [
+        {
+            "UserName": "CloudAdmin_Lisa",
+            "Arn": "arn:aws:iam::000000000000:user/CloudAdmin_Lisa"
+        }
+    ],
+    "Group": {
+        "GroupName": "Admins",
+        "Arn": "arn:aws:iam::000000000000:group/Admins"
+    }
+}
+```
+This proves `CloudAdmin_Lisa` is a member of `Admins`, with the admin permission inherited from the group rather than attached directly to the user.
 
+Evidence: <div align="left">
+<img alt="Screenshot 2026-07-29 115703" src="evidence lab1/ev1task2.png">
+<img alt="Screenshot 2026-07-29 115703" src="evidence lab1/ev1task2.1.png">
+<img alt="Screenshot 2026-07-29 115703" src="evidence lab1/ev1task2.2.png">
 ---
 
 ## Task 3 — Enforce Least Privilege with a Scoped Policy
 
 ```bash
 # 3.1 Create a read-only user
-aws $EP iam create-user --user-name Analyst_YOURNAME
+aws $EP iam create-user --user-name Analyst_Raisha
 ```
 **Why:** Creates a separate identity for a teammate who only needs to *view* data, never modify it — the first step in giving them the minimum access necessary for their role.
+**Result:** The user `Analyst_Raisha` was created successfully.
 
 ```bash
 # 3.2 Attach a scoped, read-only policy (S3 read only)
-aws $EP iam attach-user-policy --user-name Analyst_YOURNAME \
+aws $EP iam attach-user-policy --user-name Analyst_Raisha \
     --policy-arn arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess
 ```
 **Why:** Directly attaches AWS's managed `AmazonS3ReadOnlyAccess` policy, which permits only `Get`/`List`-type S3 actions and explicitly excludes write/delete actions. This demonstrates fine-grained authorization — the user can read but cannot modify data.
 
 ```bash
 # 3.3 List what the user can do
-aws $EP iam list-attached-user-policies --user-name Analyst_YOURNAME
+aws $EP iam list-attached-user-policies --user-name Analyst_Raisha
 ```
-**Why:** Verifies exactly which policy is attached to `Analyst_YOURNAME`, proving it has read-only access and nothing broader.
+**Why:** Verifies exactly which policy is attached to `Analyst_Raisha`, proving it has read-only access and nothing broader.
 
-📸 **Screenshot 3:** `list-attached-user-policies` for the Analyst showing only the read-only policy.
+**Output:**
+```json
+{
+    "AttachedPolicies": [
+        {
+            "PolicyName": "AmazonS3ReadOnlyAccess",
+            "PolicyArn": "arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess"
+        }
+    ]
+}
+```
+This proves that `Analyst_Raisha` only has the `AmazonS3ReadOnlyAccess` policy attached, and nothing broader.
+
+Evidence: <div align="left">
+<img alt="Screenshot 2026-07-29 115703" src="evidence lab1/ev1task3.1.png">
+<img alt="Screenshot 2026-07-29 115703" src="evidence lab1/ev1task3.2.png">
 
 **Report answer — Blast radius:**
 If the Analyst account's credentials were stolen, the damage is limited because the account can only *read* S3 data — it has no permission to create, modify, delete, or exfiltrate-by-altering any resource, and no permissions outside S3 at all. An attacker with these credentials could view data but couldn't destroy it, plant backdoors, spin up new resources, or pivot into other services. Compare this to a stolen `CloudAdmin` (AdministratorAccess) account, where the attacker could do *anything* — delete all resources, create new IAM users for persistence, exfiltrate everything, or run up billing. This difference in "how much damage is possible from this one compromised identity" is exactly what **blast-radius reduction** means: scoping permissions tightly shrinks the worst-case outcome of any single credential leak.
@@ -145,23 +213,44 @@ If the Analyst account's credentials were stolen, the damage is limited because 
 
 ```bash
 # 4.1 Create an access key for the Analyst
-aws $EP iam create-access-key --user-name Analyst_YOURNAME
+aws $EP iam create-access-key --user-name Analyst_Raisha
 ```
 **Why:** Generates a programmatic Access Key ID + Secret Access Key pair so the Analyst identity could authenticate via CLI/SDK rather than a console password. This output must be saved immediately — the secret key is not retrievable again later.
+**Result:** An access key was created for `Analyst_Raisha`.
+
+Security note: the secret access key is not repeated in this report. In real cloud environments, access keys must not be committed to repositories, shared in screenshots, or stored in plaintext.
 
 ```bash
 # 4.2 List access keys (note the AccessKeyId and status)
-aws $EP iam list-access-keys --user-name Analyst_YOURNAME
+aws $EP iam list-access-keys --user-name Analyst_Raisha
 
-📸 **Screenshot 4:** Output of `list-access-keys` showing the created key and its status.
 ```
 **Why:** Confirms the key was created and shows its `AccessKeyId` and `Status` (Active/Inactive), which is needed to reference the key in the next step.
 
+**Output:**
+```json
+{
+    "AccessKeyMetadata": [
+        {
+            "UserName": "Analyst_Raisha",
+            "AccessKeyId": "LKIAQAAAAAAANMJV6XA3",
+            "Status": "Active",
+            "CreateDate": "2026-07-29T05:29:06.789002+00:00"
+        }
+    ]
+}
+```
+
 ```bash
 # 4.3 Rotate: deactivate the old key (paste the AccessKeyId)
-aws $EP iam update-access-key --user-name Analyst_YOURNAME \
+aws $EP iam update-access-key --user-name Analyst_Raisha \
     --access-key-id <PASTE_KEY_ID> --status Inactive
 ```
+**Result:** The access key status is now `Inactive`, which demonstrates key rotation/deactivation.
+Evidence: <div align="left">
+<img alt="Screenshot 2026-07-29 115703" src="evidence lab1/task4.1.png">
+<img alt="Screenshot 2026-07-29 115703" src="evidence lab1/task4.2.png">
+
 **Why:** Simulates key rotation by disabling the key without deleting it outright. In practice, rotation means: issue a new key, update systems to use it, then deactivate/delete the old one — this limits how long any single long-lived credential remains valid and usable if leaked.
 
 **Report note:** Long-lived access keys are risky because, unlike role-based temporary credentials, they don't expire on their own — if leaked (e.g. committed to a public repo), they remain usable indefinitely until someone notices and manually deactivates them. This is why AWS best practice prefers short-lived roles over standing access keys wherever possible.
@@ -186,7 +275,11 @@ kubectl cluster-info --context kind-ccse-lab1
 kubectl get nodes
 ```
 **Why:** Verifies the cluster's control plane is reachable and lists its node(s), confirming the cluster is ready before creating any resources in it.
+**Result:** The local kind cluster `ccse-lab1` was created successfully, and kubectl was configured to use context `kind-ccse-lab1`.
 
+Evidence: <div align="left">
+<img alt="Screenshot 2026-07-29 115703" src="evidence lab1/setup1.png">
+<img alt="Screenshot 2026-07-29 115703" src="evidence lab1/setup2.png">
 ---
 
 ## Task 5 — Separate Environments with Namespaces
@@ -197,8 +290,10 @@ kubectl create namespace prod
 kubectl get namespaces
 ```
 **Why:** Namespaces partition a single cluster into isolated logical environments. Creating separate `dev` and `prod` namespaces lets us later prove that permissions granted in one namespace do *not* automatically extend to another — a core test of least privilege and blast-radius containment within one cluster.
+**Result:** The namespaces `dev` and `prod` were created and listed as `Active`.
 
-📸 **Screenshot 5:** Output of `kubectl get namespaces` showing both namespaces.
+Evidence: <div align="left">
+<img alt="Screenshot 2026-07-29 115703" src="evidence lab1/task5.png">
 
 ---
 
@@ -206,9 +301,10 @@ kubectl get namespaces
 
 ```bash
 # 6.1 Create a service account to represent a developer
-kubectl create serviceaccount dev-user -n dev
+kubectl create serviceaccount devsofia -n dev
 ```
 **Why:** A ServiceAccount is a non-human identity Kubernetes uses to authenticate workloads/API calls (here representing "a developer"), scoped to the `dev` namespace.
+**Result:** The service account `devsofia` was created in the `dev` namespace.
 
 ```bash
 # 6.2 Create a Role that allows only get/list/watch on pods in dev
@@ -216,16 +312,21 @@ kubectl create role pod-reader -n dev \
     --verb=get,list,watch --resource=pods
 ```
 **Why:** A `Role` is a namespaced set of permissions (verbs on resources). This one grants only read-type actions (`get`, `list`, `watch`) on `pods`, and only within the `dev` namespace — explicitly excluding `delete`, `create`, `update`, etc.
+**Result:** The Role `pod-reader` was created in the `dev` namespace. It allows only `get`, `list`, and `watch` actions on pods.
 
 ```bash
 # 6.3 Bind the Role to the service account
 kubectl create rolebinding dev-user-binding -n dev \
-    --role=pod-reader --serviceaccount=dev:dev-user
+    --role=pod-reader --serviceaccount=dev:devsofia
 
-📸 **Screenshot 6:** Output of `kubectl get rolebinding dev-user-binding -n dev -o yaml` showing the created RoleBinding.
 ```
-**Why:** A `Role` alone grants nothing until it is *bound* to an identity. The `RoleBinding` links the `pod-reader` Role to the `dev-user` ServiceAccount, so that identity now actually has those permissions — and only within the `dev` namespace, since RoleBindings (unlike ClusterRoleBindings) are namespace-scoped.
+**Why:** A `Role` alone grants nothing until it is *bound* to an identity. The `RoleBinding` links the `pod-reader` Role to the `devsofia` ServiceAccount, so that identity now actually has those permissions — and only within the `dev` namespace, since RoleBindings (unlike ClusterRoleBindings) are namespace-scoped.
+**Result:** The RoleBinding `dev-user-binding` binds the `pod-reader` Role to the `devsofia` service account.
 
+Evidence: <div align="left">
+<img alt="Screenshot 2026-07-29 115703" src="evidence lab1/task6.1.png">
+<img alt="Screenshot 2026-07-29 115703" src="evidence lab1/task6.2.png">
+<img alt="Screenshot 2026-07-29 115703" src="evidence lab1/task6.3.png">
 ---
 
 ## Task 7 — Test That Access Control Works
@@ -244,7 +345,13 @@ kubectl auth can-i list pods -n prod --as=$SA
 ```
 **Why:** `kubectl auth can-i --as=<identity>` simulates what a given identity is authorized to do, without needing to actually attempt the action. Testing all three cases proves the RBAC boundary works exactly as configured: allowed action succeeds, disallowed verb (delete) is blocked, and cross-namespace access (prod) is blocked — even though it's the same cluster.
 
-📸 **Screenshot 7:** The three `kubectl auth can-i` results (YES / NO / NO).
+**Results:**
+- `list pods -n dev` → `yes` — allowed because `pod-reader` grants `list` on pods in `dev`.
+- `delete pods -n dev` → `no` — blocked because the Role only grants `get`, `list`, and `watch`; delete was never granted.
+- `list pods -n prod` → `no` — blocked because the Role and RoleBinding are namespaced to `dev` and do not extend to `prod`.
+
+Evidence: <div align="left">
+<img alt="Screenshot 2026-07-29 115703" src="evidence lab1/task7.png">
 
 **Report answer — Authentication vs. Authorization:**
 In all three checks, the service account is successfully **authenticated** — Kubernetes recognizes `system:serviceaccount:dev:dev-user` as a valid, known identity in every case; that step never fails. What differs is **authorization**: for `list pods -n dev`, the RBAC Role+RoleBinding explicitly grants that verb/resource/namespace combination, so it's authorized (YES). For `delete pods -n dev` and `list pods -n prod`, the identity is still authenticated, but the RBAC rules attached to it never grant a `delete` verb, nor any permissions in the `prod` namespace — so the **authorization** step is what blocks the request (NO/NO), not authentication. This demonstrates the RBAC principle of least privilege: identity is verified, but access is separately and precisely scoped.
@@ -258,6 +365,29 @@ kubectl get rolebinding dev-user-binding -n dev -o yaml
 ```
 **Why:** Dumps the full RoleBinding definition as YAML — proof that the binding (subject, role reference, namespace) exists exactly as configured, submitted as evidence RBAC is correctly in place.
 
+**Output:**
+```yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  creationTimestamp: "2026-07-29T05:48:38Z"
+  name: dev-user-binding
+  namespace: dev
+  resourceVersion: "701"
+  uid: 91124053-fdc5-418a-a916-ec078374971c
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: pod-reader
+subjects:
+- kind: ServiceAccount
+  name: devsofia
+  namespace: dev
+```
+This confirms that the `dev-user-binding` RoleBinding connects the `devsofia` service account to the `pod-reader` Role in the `dev` namespace.
+
+Evidence: <div align="left">
+<img alt="Screenshot 2026-07-29 115703" src="evidence lab1/verify.png">
 ---
 
 ## Deliverables Checklist
@@ -290,29 +420,31 @@ The `dev-user` service account failed to access `prod` because its RoleBinding (
 
 ---
 
-## Security Best-Practices Checklist
-
-- [x] Root user is not used for daily tasks (a dedicated admin identity exists).
-- [x] Permissions are granted via groups/roles, not directly to individual users.
-- [x] At least one least-privilege (read-only) identity was created and tested.
-- [x] Access keys were listed and a rotation (deactivate) was demonstrated.
-- [x] Kubernetes RBAC blocks an unauthorised action (delete / cross-namespace).
-
----
-
 ## Cleanup & Teardown
 
 ```bash
 # Remove the Kubernetes cluster
 kind delete cluster --name ccse-lab1
 ```
-**Why:** Tears down the entire local `kind` cluster and its Docker containers, freeing resources since the cluster was only needed for this lab exercise.
-
 ```bash
 # Stop and remove LocalStack
 docker stop localstack && docker rm localstack
 ```
-**Why:** Stops the running LocalStack container and then removes the container itself, fully cleaning up the emulated AWS environment used in Session A.
+## Security Best-Practices Checklist
 
+- [x] Root user was not used for daily administrative tasks — a dedicated identity, `CloudAdmin_Lisa`, was created instead.
+- [x] Admin permissions were granted through the `Admins` group rather than being attached directly to the admin user, so access can be managed centrally.
+- [x] A least-privilege identity, `Analyst_Raisha`, was created and scoped only to `AmazonS3ReadOnlyAccess`.
+- [x] Access keys were created, listed, and deactivated to demonstrate credential rotation and hygiene.
+- [x] Kubernetes RBAC correctly enforced boundaries — deleting pods in `dev` and listing pods in `prod` were both blocked for the `devsofia` service account.
+- [x] Environments were isolated using separate `dev` and `prod` namespaces, preventing permissions from unintentionally crossing over.
 
 ---
+
+## Conclusion
+
+This lab demonstrated how identity and access management principles apply across two different environments — a simulated cloud platform and a real orchestration system. In LocalStack, administrative access was managed responsibly by attaching the `AdministratorAccess` policy to a group rather than an individual user, keeping root credentials out of daily use. A separate, scoped-down identity (`Analyst_Raisha`) showed how least privilege limits the impact of a compromised account to a single, low-risk permission set.
+
+In Kubernetes, RBAC proved to be a stricter, actively enforced form of access control compared to LocalStack IAM's simulation. The `devsofia` service account could only perform the exact actions defined by its Role — read-only access to pods, and only within the `dev` namespace. Attempts to delete pods or reach into `prod` were denied by default, confirming that Kubernetes authorization does not extend permissions beyond what is explicitly granted.
+
+Overall, the lab reinforced that strong identity governance isn't just about creating accounts — it's about deliberately scoping what each identity can do, grouping permissions for easier management, and verifying that those boundaries actually hold up when tested.
