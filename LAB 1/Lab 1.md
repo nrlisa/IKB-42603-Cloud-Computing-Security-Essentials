@@ -363,7 +363,14 @@ kubectl auth can-i delete pods -n dev --as=$SA
 # Should be NO — the role does not extend to prod
 kubectl auth can-i list pods -n prod --as=$SA
 ```
-**Why:** `kubectl auth can-i --as=<identity>` simulates what a given identity is authorized to do, without needing to actually attempt the action. Testing all three cases proves the RBAC boundary works exactly as configured: allowed action succeeds, disallowed verb (delete) is blocked, and cross-namespace access (prod) is blocked — even though it's the same cluster.
+**Why:** `kubectl auth can-i --as=<identity>` checks whether an identity is authorized to perform an action without actually executing it.
+
+Testing all three cases confirms the RBAC boundary:
+- **Allowed action** → succeeds
+- **Disallowed verb (`delete`)** → blocked
+- **Cross-namespace (`prod`)** → blocked
+
+RBAC allows only explicitly permitted actions, even within the same cluster.
 
 **Results:**
 - `list pods -n dev` → `yes` — allowed because `pod-reader` grants `list` on pods in `dev`.
@@ -373,8 +380,18 @@ kubectl auth can-i list pods -n prod --as=$SA
 Evidence: <div align="left">
 <img alt="Screenshot 2026-07-29 115703" src="evidence lab1/task7.png">
 
-**Report answer — Authentication vs. Authorization:**
-In all three checks, the service account is successfully **authenticated** — Kubernetes recognizes `system:serviceaccount:dev:dev-user` as a valid, known identity in every case; that step never fails. What differs is **authorization**: for `list pods -n dev`, the RBAC Role+RoleBinding explicitly grants that verb/resource/namespace combination, so it's authorized (YES). For `delete pods -n dev` and `list pods -n prod`, the identity is still authenticated, but the RBAC rules attached to it never grant a `delete` verb, nor any permissions in the `prod` namespace — so the **authorization** step is what blocks the request (NO/NO), not authentication. This demonstrates the RBAC principle of least privilege: identity is verified, but access is separately and precisely scoped.
+## Authentication vs. Authorization
+
+| Check | Authentication | Authorization | Result |
+|---|---|---|---|
+| `list pods -n dev` | ✅ Valid identity | ✅ `list` allowed in `dev` | **YES** |
+| `delete pods -n dev` | ✅ Valid identity | ❌ `delete` not allowed | **NO** |
+| `list pods -n prod` | ✅ Valid identity | ❌ No permissions in `prod` | **NO** |
+
+### Key Takeaway
+- **Authentication:** Verifies **who** the service account is.
+- **Authorization:** Determines **what** it can access or do.
+- RBAC enforces **least privilege** by granting only explicitly allowed actions.
 
 ---
 
@@ -413,19 +430,65 @@ Evidence: <div align="left">
 ## Short-Answer Questions
 
 **Q1. Why is attaching policies to groups better than attaching them directly to users?**
-Attaching policies to a group centralizes permission management — updating the group's policy instantly updates every member, and adding/removing a user from the group instantly grants/revokes access. Attaching policies per-user instead means every permission change has to be repeated individually for each user, which doesn't scale and is much easier to get inconsistent or forget to update, increasing audit difficulty and risk.
+| Benefit | Explanation |
+|---|---|
+| **Centralized** | Manage permissions in one place. |
+| **Scalable** | One policy applies to all group members. |
+| **Easy access control** | Adding/removing users grants or revokes access. |
+| **Consistent** | Reduces permission mistakes and inconsistencies. |
+| **Easier auditing** | Group-based permissions are easier to review. |
+
+Group-based policies are more scalable, consistent, and easier to manage than per-user policies.
 
 **Q2. What is the difference between an IAM User and an IAM Role?**
-An IAM User is a persistent identity with its own long-term credentials (password and/or access keys) representing a specific person or application. An IAM Role has no credentials of its own and cannot be logged into directly — it is *assumed* temporarily by a trusted user, application, or service, which is then issued short-lived, expiring credentials for the duration of that session. Roles are safer for many use cases because there's no long-lived secret to leak.
+| Feature | IAM User | IAM Role |
+|---|---|---|
+| **Identity** | Persistent identity for a person or application | Temporary identity assumed by a trusted entity |
+| **Credentials** | Long-term credentials | Short-lived credentials |
+| **Direct login** | Can be used directly | Cannot be logged into directly |
+| **Security** | Higher risk if credentials leak | Safer because credentials expire |
+| **Best use** | Specific users or legacy applications | Temporary access and AWS services |
+
+IAM Users use long-term credentials, while Roles provide temporary, short-lived access.
 
 **Q3. Explain least privilege using the Analyst account, and how it reduces blast radius if compromised.**
-The Analyst account was given only `AmazonS3ReadOnlyAccess` — exactly the permission needed for its job (viewing data) and nothing more. This is least privilege: granting the minimum access required to perform a task. If the Analyst's credentials are compromised, the attacker inherits only read access to S3; they cannot delete, modify, or create resources, and have zero access to any other AWS service. This caps the maximum possible damage (the "blast radius") of that one compromised identity, in sharp contrast to a compromised admin account, which could cause unlimited damage across the entire account.
+T## Least Privilege — Analyst Account
+
+| Aspect | Explanation |
+|---|---|
+| **Permission** | `AmazonS3ReadOnlyAccess` |
+| **Purpose** | Allows only the required S3 read access |
+| **Blocked actions** | Cannot create, modify, or delete resources |
+| **Other services** | No access to other AWS services |
+| **If compromised** | Attacker inherits only the limited permissions |
+| **Blast radius** | Reduced compared to a compromised admin account |
+
+Least privilege limits permissions to what is necessary, reducing the potential damage from a compromised identity.
 
 **Q4. In Kubernetes, what is the difference between a Role and a RoleBinding?**
-A `Role` defines *what* permissions exist — a set of verbs (get, list, delete, etc.) allowed on specific resources within a namespace. It does not grant anything to anyone by itself. A `RoleBinding` defines *who* gets those permissions — it links (binds) a Role to one or more subjects (users, groups, or service accounts). Permissions only take effect once a Role is bound to a subject via a RoleBinding.
+## Role vs RoleBinding
+
+| Component | Purpose |
+|---|---|
+| **Role** | Defines **what** actions are allowed on specific resources within a namespace. |
+| **RoleBinding** | Defines **who** receives those permissions by linking a Role to a user, group, or ServiceAccount. |
+
+### Example
+- `Role` → Allows `get` and `list` on pods.
+- `RoleBinding` → Gives those permissions to `devsofia`.
+- Without a `RoleBinding`, the `Role` **does not grant access** to anyone.
 
 **Q5. Why did the developer service account fail to access prod, and which security principle does that demonstrate?**
-The `dev-user` service account failed to access `prod` because its RoleBinding (`dev-user-binding`) only binds the `pod-reader` Role within the `dev` namespace — namespaced RoleBindings do not extend to other namespaces. There is no Role or RoleBinding for `dev-user` in `prod` at all, so the request is denied by default. This demonstrates the **principle of least privilege** (and, more specifically, environment/namespace isolation) — an identity should only be granted access to the exact resources and environments it needs, and Kubernetes defaults to deny-all unless a rule explicitly grants access.
+| Point | Explanation |
+|---|---|
+| **RoleBinding scope** | `dev-user-binding` only applies to the `dev` namespace. |
+| **Role scope** | `pod-reader` only grants permissions within `dev`. |
+| **No `prod` access** | No Role or RoleBinding grants `dev-user` access to `prod`. |
+| **Result** | Access is denied by default. |
+| **Security principle** | Demonstrates **least privilege** and namespace isolation. |
+
+### Key Takeaway
+**`dev-user` can only access explicitly permitted resources in `dev`, not `prod`.**
 
 ---
 
@@ -452,8 +515,24 @@ docker stop localstack && docker rm localstack
 
 ## Conclusion
 
-This lab demonstrated how identity and access management principles apply across two different environments — a simulated cloud platform and a real orchestration system. In LocalStack, administrative access was managed responsibly by attaching the `AdministratorAccess` policy to a group rather than an individual user, keeping root credentials out of daily use. A separate, scoped-down identity (`Analyst_Raisha`) showed how least privilege limits the impact of a compromised account to a single, low-risk permission set.
+This lab showed how **IAM and access control** work across LocalStack and Kubernetes.
 
-In Kubernetes, RBAC proved to be a stricter, actively enforced form of access control compared to LocalStack IAM's simulation. The `devsofia` service account could only perform the exact actions defined by its Role — read-only access to pods, and only within the `dev` namespace. Attempts to delete pods or reach into `prod` were denied by default, confirming that Kubernetes authorization does not extend permissions beyond what is explicitly granted.
+### LocalStack — IAM
+- `AdministratorAccess` was assigned to a **group**, not an individual user.
+- Root credentials were kept out of daily use.
+- `Analyst_Raisha` used **least privilege** with limited permissions.
+- This reduces the impact of a compromised account.
 
-Overall, the lab reinforced that strong identity governance isn't just about creating accounts — it's about deliberately scoping what each identity can do, grouping permissions for easier management, and verifying that those boundaries actually hold up when tested.
+### Kubernetes — RBAC
+- `devsofia` could only perform actions allowed by its `Role`.
+- Access was **read-only for pods** in the `dev` namespace.
+- Deleting pods or accessing `prod` was **denied by default**.
+
+### Key Takeaway
+Strong identity governance requires:
+- **Least privilege**
+- **Scoped permissions**
+- **Group-based permission management**
+- **Testing access boundaries**
+
+Permissions should be **explicitly granted and verified**, not assumed.

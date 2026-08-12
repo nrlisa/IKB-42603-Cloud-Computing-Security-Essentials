@@ -17,7 +17,7 @@ Welcome to my **Cloud Computing Security Essentials** laboratory repository. Thi
 | :---: | :---: | :--- | :---: |
 | Week 0 | Lab 0 | `Lab0_Environment_Setup.md` | ✅ Completed |
 | Week 1 | Lab 1 | `Lab1_Account_Security_and_IAM.md` | ✅ Completed |
-| Week 2 | Lab 2 | `Lab2_Secure_Isolation_and_Multitenancy.md` | ⏳ Pending |
+| Week 2 | Lab 2 | `Lab2_Secure_Isolation_and_Multitenancy.md` | ✅ Completed |
 | Week 2 | Quiz | `QUIZ - W2.pdf` | ✅ Completed |
 | Week 3 | Lab 3 | `Lab3_Encryption_and_Key_Management.md` | ⏳ Pending |
 | Week 4 | Lab 4 | `Lab4_Access_Control_and_Network_Security.md` | ⏳ Pending |
