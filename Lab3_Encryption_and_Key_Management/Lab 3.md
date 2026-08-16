@@ -202,7 +202,7 @@ aws $EP kms encrypt --key-id $KEY_A --plaintext "$(echo -n 'hello' | base64)" \
 
 Evidence: <div align="left">
 <img alt="KMS create-key output with the captured KeyId" src="evidence lab 3/lab3task4a.png">
-<img alt="KMS encrypt output" src="evidence lab 3/lab3task.png">
+<img alt="KMS encrypt output" src="evidence lab 3/lab3task4b.png">
 </div>
 
 ---
@@ -305,6 +305,7 @@ Evidence: <div align="left">
 ## Short-Answer Questions
 
 **Q1. Compare symmetric and asymmetric encryption: speed, key distribution, and typical use.**
+
 | Aspect | Symmetric (e.g. AES) | Asymmetric (e.g. RSA) |
 |---|---|---|
 | **Speed** | Fast — suited to bulk data | Slow — suited to small payloads |
@@ -313,15 +314,19 @@ Evidence: <div align="left">
 | **Typical use** | Encrypting data at rest and bulk data in transit | Key exchange, digital signatures, TLS handshakes |
 
 **Q2. Why is key management described as the weakest link, not the algorithm?**
+
 Encryption is only as strong as its key management. The algorithms are public and standard, but the key is the one secret that protects everything — if keys are shared poorly, stored insecurely, reused too long, or not rotated and destroyed, an attacker can obtain the key (or the wrapped copy) and the strongest algorithm becomes useless. In the cloud, where storage is virtualized and shared, where the keys live and who can use them is the real security control.
 
 **Q3. Explain envelope encryption and why only the master key needs hardware-grade protection.**
+
 Envelope encryption encrypts the data with a random one-time data key, then encrypts (wraps) that data key with the master key held in the KMS. The wrapped data key is stored alongside the ciphertext. Only the small master key needs hardware-grade protection because it is the only key that can unwrap data keys — the data keys themselves are short-lived, used once, and discarded.
 
 **Q4. How does cryptographic erasure achieve provable deletion where overwriting cannot (in the cloud)?**
+
 In the cloud, physical storage is virtualized, shared and replicated, so overwriting the underlying bytes is impractical and unreliable. Cryptographic erasure instead destroys the key that encrypted the data. Once the key is gone, every copy of the ciphertext — including backups — becomes unreadable, so deletion is provable even though the bytes still exist.
 
 **Q5. How does a hash chain make a log tamper-evident (link to tamper-proof logs, Week 6)?**
+
 Each log entry incorporates the hash of the previous entry, so every entry is cryptographically bound to the one before it. Modifying, inserting or deleting an earlier entry changes its hash, which breaks every subsequent link in the chain — tampering is immediately detected by recomputing the hashes.
 
 ---
@@ -343,12 +348,12 @@ docker stop localstack && docker rm localstack
 
 ## Security Best-Practices Checklist
 
-- [ ] Data encrypted at rest (AES) and decryption verified.
-- [ ] Asymmetric keys used correctly (encrypt with public, sign with private).
-- [ ] Data protected in transit with TLS.
-- [ ] Envelope encryption used; plaintext data key not left on disk.
-- [ ] Per-tenant keys used; cryptographic erasure demonstrated.
-- [ ] Integrity verified with hashing / hash chain.
+- [X] Data encrypted at rest (AES) and decryption verified.
+- [X] Asymmetric keys used correctly (encrypt with public, sign with private).
+- [X] Data protected in transit with TLS.
+- [X] Envelope encryption used; plaintext data key not left on disk.
+- [X] Per-tenant keys used; cryptographic erasure demonstrated.
+- [X] Integrity verified with hashing / hash chain.
 
 ---
 
@@ -372,16 +377,3 @@ Encryption is only as strong as its key management — the algorithm is public, 
 
 ---
 
-## Expansion Ideas (Advanced Students)
-
-- Store the master key in a software HSM (SoftHSM) and use PKCS#11 to sign — model hardware key protection.
-- Stand up HashiCorp Vault in a container and use its transit engine for envelope encryption.
-- Configure mutual TLS (mTLS) between two containers so both sides authenticate.
-- Automate key rotation and re-wrap existing data keys under a new master key.
-
-## References
-
-- Course lecture — Week 4 (Data Protection); Week 9 (Key Management patterns).
-- OpenSSL documentation — <https://www.openssl.org/docs>
-- AWS KMS concepts (envelope encryption) — <https://docs.aws.amazon.com/kms>
-- CSA Security Guidance v5 — Data Security & Encryption.
