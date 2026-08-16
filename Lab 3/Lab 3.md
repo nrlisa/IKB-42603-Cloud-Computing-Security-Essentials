@@ -202,7 +202,7 @@ aws $EP kms encrypt --key-id $KEY_A --plaintext "$(echo -n 'hello' | base64)" \
 
 Evidence: <div align="left">
 <img alt="KMS create-key output with the captured KeyId" src="evidence lab 3/lab3task4a.png">
-<img alt="KMS encrypt output" src="evidence lab 3/lab3task4b.png">
+<img alt="KMS encrypt output" src="evidence lab 3/lab3task.png">
 </div>
 
 ---
