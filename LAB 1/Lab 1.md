@@ -48,7 +48,7 @@ This lab is split into two sessions:
 Nothing in this lab touches a real cloud provider — LocalStack emulates AWS APIs on `localhost:4566`, and `kind` runs a throwaway Kubernetes cluster inside Docker on the local machine.
 
 ---
-## Session A (Week 1) — Cloud Identity with LocalStack 
+## Session A (Week 1) — Cloud Identity with LocalStack
 ## Environment Setup
 
 ```bash
@@ -359,7 +359,7 @@ Evidence: <div align="left">
 ## Task 7 — Test That Access Control Works
 
 ```bash
-SA=system:serviceaccount:dev:dev-user
+SA=system:serviceaccount:dev:devsofia
 
 # Should be YES — reading pods in dev is allowed
 kubectl auth can-i list pods -n dev --as=$SA
@@ -463,7 +463,7 @@ Group-based policies are more scalable, consistent, and easier to manage than pe
 IAM Users use long-term credentials, while Roles provide temporary, short-lived access.
 
 **Q3. Explain least privilege using the Analyst account, and how it reduces blast radius if compromised.**
-T## Least Privilege — Analyst Account
+## Least Privilege — Analyst Account
 
 | Aspect | Explanation |
 |---|---|
@@ -494,12 +494,12 @@ Least privilege limits permissions to what is necessary, reducing the potential 
 |---|---|
 | **RoleBinding scope** | `dev-user-binding` only applies to the `dev` namespace. |
 | **Role scope** | `pod-reader` only grants permissions within `dev`. |
-| **No `prod` access** | No Role or RoleBinding grants `dev-user` access to `prod`. |
+| **No `prod` access** | No Role or RoleBinding grants `devsofia` access to `prod`. |
 | **Result** | Access is denied by default. |
 | **Security principle** | Demonstrates **least privilege** and namespace isolation. |
 
 ### Key Takeaway
-**`dev-user` can only access explicitly permitted resources in `dev`, not `prod`.**
+**`devsofia` can only access explicitly permitted resources in `dev`, not `prod`.**
 
 ---
 

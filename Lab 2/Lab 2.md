@@ -88,6 +88,7 @@ kubectl -n kube-system rollout status daemonset/calico-node --timeout=180s
 Evidence: <div align="left">
 <img alt="kind cluster creation with Calico CNI" src="evidence lab2/setup1.png">
 <img alt="Calico rollout status" src="evidence lab2/setup2.png">
+</div>
 
 ---
 
@@ -117,6 +118,7 @@ kubectl get pods,svc -n tenant-a
 
 Evidence: <div align="left">
 <img alt="Namespace creation" src="evidence lab2/task1.png">
+</div>
 
 ---
 
@@ -137,6 +139,7 @@ Namespaces provide **logical separation**, not network isolation. `NetworkPolicy
 
 Evidence: <div align="left">
 <img alt="tenant-b ClusterIP lookup" src="evidence lab2/task2.png">
+</div>
 
 ---
 
@@ -173,6 +176,7 @@ kubectl describe resourcequota tenant-a-quota -n tenant-a
 
 Evidence: <div align="left">
 <img alt="ResourceQuota applied" src="evidence lab2/task3.png">
+</div>
 
 *End of Session A. The `HTTP 200` result from Task 2 was retained to compare against Session B, where the same probe is re-run after a NetworkPolicy is applied.*
 
@@ -207,16 +211,18 @@ kubectl -n tenant-a run probe --rm -it --image=curlimages/curl --restart=Never \
 
 This confirms that `NetworkPolicy` provides network isolation that namespaces alone do not.
 
-Evidence: 
+Evidence:
 
 **Before:**
 <div align="left">
 <img alt="Default-deny NetworkPolicy" src="evidence lab2/task2.png">
+</div>
 
 **After:**
 <div align="left">
 <img alt="Default-deny NetworkPolicy applied" src="evidence lab2/task4.1.png">
 <img alt="Probe timing out after policy applied" src="evidence lab2/task4.2.png">
+</div>
 
 ---
 
@@ -247,6 +253,8 @@ This confirms that `tenant-a`'s workload cannot read `tenant-b`'s secrets, even 
 Evidence: <div align="left">
 <img alt="Secrets created per tenant" src="evidence lab2/task5.1.png">
 <img alt="Service account, role and rolebinding creation" src="evidence lab2/task5.2.png">
+</div>
+
 ---
 
 ## Task 6 — Data Remanence & Secure Deletion
@@ -274,6 +282,8 @@ echo wiped'
 
 Evidence: <div align="left">
 <img alt="Data remanence scan showing recoverable content" src="evidence lab2/task6.png">
+</div>
+
 ---
 
 ## Verification Command
@@ -287,14 +297,17 @@ kubectl describe resourcequota tenant-a-quota -n tenant-a
 
 Evidence: <div align="left">
 <img alt="NetworkPolicy and ResourceQuota verification" src="evidence lab2/verify1.png">
+</div>
 <div align="left">
 <img alt="NetworkPolicy and ResourceQuota verification" src="evidence lab2/verify2.png">
+</div>
+
 ---
 
 ### Extra task: Task 7 — Egress Default-Deny & Micro-Segmentation
 
 > Full Task 7 evidence is documented separately:
-> [View Task 7 — Egress Default-Deny & Micro-Segmentation](task7.md)
+> [View Task 7 — Egress Default-Deny & Micro-Segmentation](Extra%20task-%20Egress%20Default-Deny%20%26%20Micro-Segmentation.md)
 
 ## Short-Answer Questions
 
@@ -309,7 +322,7 @@ The `default-deny-ingress` policy implements this by selecting all pods in `tena
 As demonstrated in Task 4, this changes `tenant-b` from being reachable by any pod in the cluster to being reachable by none, until a specific allow-rule is added.
 
 **Q3. How do virtual machines and containers differ in isolation strength? When would you add a VM boundary?**
- |Feature | Containers | Virtual Machines |
+| Feature | Containers | Virtual Machines |
 |---|---|---|
 | Isolation | Kernel namespaces + cgroups | Hypervisor + virtualized hardware |
 | Kernel | Share host kernel | Each VM has its own kernel |
