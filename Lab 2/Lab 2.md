@@ -1,8 +1,6 @@
 # Lab 2: Secure Isolation & Multi-Tenancy
 Course: IKB42603 Cloud Computing Security Essentials
 
-Lab: Lab 2
-
 Topic: Compute, network and storage isolation, default-deny NetworkPolicy, RBAC secret isolation, data remanence
 
 Environment: kind Kubernetes cluster ccse-lab2 (Calico CNI) and Docker
@@ -293,6 +291,11 @@ Evidence: <div align="left">
 <img alt="NetworkPolicy and ResourceQuota verification" src="evidence lab2/verify2.png">
 ---
 
+### Extra task: Task 7 — Egress Default-Deny & Micro-Segmentation
+
+> Full Task 7 evidence is documented separately:
+> [View Task 7 — Egress Default-Deny & Micro-Segmentation](task7.md)
+
 ## Short-Answer Questions
 
 **Q1. Why can containers in different namespaces reach each other by default, and why is that dangerous in multi-tenant cloud?**
@@ -306,7 +309,7 @@ The `default-deny-ingress` policy implements this by selecting all pods in `tena
 As demonstrated in Task 4, this changes `tenant-b` from being reachable by any pod in the cluster to being reachable by none, until a specific allow-rule is added.
 
 **Q3. How do virtual machines and containers differ in isolation strength? When would you add a VM boundary?**
- Feature | Containers | Virtual Machines |
+ |Feature | Containers | Virtual Machines |
 |---|---|---|
 | Isolation | Kernel namespaces + cgroups | Hypervisor + virtualized hardware |
 | Kernel | Share host kernel | Each VM has its own kernel |
@@ -322,7 +325,7 @@ Use VMs when tenants are **mutually untrusted** and a cross-tenant breach could 
 
 
 **Q4. What is data remanence, and why is cryptographic erasure the preferred cloud solution?**
- Concept | Explanation |
+| Concept | Explanation |
 |---|---|
 | **Data remanence** | Residual data that remains on storage after deletion. Normal deletion may only remove the data pointer, leaving the underlying bytes recoverable. |
 | **Cloud challenge** | Physical disks are usually virtualized, shared, and replicated, so users cannot directly overwrite or shred them. |
@@ -371,7 +374,7 @@ docker volume rm ccse-vol
 
 This lab demonstrated that multi-tenant isolation on shared cloud infrastructure is not automatic — it must be deliberately engineered across compute, network, and storage dimensions. 
 
-S### Session A — Default Risks
+### Session A — Default Risks
 - Separate namespaces did **not** prevent cross-tenant network access.
 - Tenants could consume shared resources without limits.
 - `ResourceQuota` was needed to control resource usage.
@@ -390,3 +393,6 @@ Secure multi-tenant isolation requires:
 - **Storage:** RBAC + secure data deletion
 
 Controls should be **tested and verified**, not assumed to work just because they are configured.
+
+
+

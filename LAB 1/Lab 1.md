@@ -1,8 +1,6 @@
 # Lab 1: Cloud Account Security, Identity and Access Management
 Course: IKB42603 Cloud Computing Security Essentials
 
-Lab: Lab 1 
-
 Topic: Identity governance, least privilege, LocalStack IAM and Kubernetes RBAC
 
 Environment: LocalStack on localhost:4566 and kind Kubernetes cluster ccse-lab1
@@ -14,7 +12,7 @@ Lab Summary // Objective
 This lab demonstrates cloud identity management and access control using two different platforms:
 
 LocalStack IAM was used to simulate AWS Identity and Access Management functions, including users, groups, policies and access keys.
-Kubernetes RBAC was used to implement authorization control by defining roles and assigning permissions throug# Lab 1 — Cloud Account Security, Identity & Access Management
+Kubernetes RBAC was used to implement authorization control by defining roles and assigning permissions.
 
 ---
 ## Evidence Folder
@@ -97,7 +95,7 @@ The account ID `000000000000` confirms the commands were executed against LocalS
 
 Evidence: <div align="left">
 <img alt="Screenshot 2026-07-29 115703" src="evidence lab1/earlysetup.png">
-
+</div>
 ---
 
 ## Task 1 — Map the Cloud Identity Landscape
@@ -189,6 +187,8 @@ Evidence: <div align="left">
 <img alt="Screenshot 2026-07-29 115703" src="evidence lab1/ev1task2.png">
 <img alt="Screenshot 2026-07-29 115703" src="evidence lab1/ev1task2.1.png">
 <img alt="Screenshot 2026-07-29 115703" src="evidence lab1/ev1task2.2.png">
+</div>
+
 ---
 
 ## Task 3 — Enforce Least Privilege with a Scoped Policy
@@ -229,6 +229,7 @@ This proves that `Analyst_Raisha` only has the `AmazonS3ReadOnlyAccess` policy a
 Evidence: <div align="left">
 <img alt="Screenshot 2026-07-29 115703" src="evidence lab1/ev1task3.1.png">
 <img alt="Screenshot 2026-07-29 115703" src="evidence lab1/ev1task3.2.png">
+</div>
 
 ---
 
@@ -272,6 +273,7 @@ aws $EP iam update-access-key --user-name Analyst_Raisha \
 Evidence: <div align="left">
 <img alt="Screenshot 2026-07-29 115703" src="evidence lab1/task4.1.png">
 <img alt="Screenshot 2026-07-29 115703" src="evidence lab1/task4.2.png">
+</div>
 
 **Why:** Simulates key rotation by disabling the key without deleting it outright. In practice, rotation means: issue a new key, update systems to use it, then deactivate/delete the old one — this limits how long any single long-lived credential remains valid and usable if leaked.
 
@@ -300,6 +302,8 @@ kubectl get nodes
 Evidence: <div align="left">
 <img alt="Screenshot 2026-07-29 115703" src="evidence lab1/setup1.png">
 <img alt="Screenshot 2026-07-29 115703" src="evidence lab1/setup2.png">
+</div>
+
 ---
 
 ## Task 5 — Separate Environments with Namespaces
@@ -314,6 +318,7 @@ kubectl get namespaces
 
 Evidence: <div align="left">
 <img alt="Screenshot 2026-07-29 115703" src="evidence lab1/task5.png">
+</div>
 
 ---
 
@@ -347,6 +352,8 @@ Evidence: <div align="left">
 <img alt="Screenshot 2026-07-29 115703" src="evidence lab1/task6.1.png">
 <img alt="Screenshot 2026-07-29 115703" src="evidence lab1/task6.2.png">
 <img alt="Screenshot 2026-07-29 115703" src="evidence lab1/task6.3.png">
+</div>
+
 ---
 
 ## Task 7 — Test That Access Control Works
@@ -379,6 +386,8 @@ RBAC allows only explicitly permitted actions, even within the same cluster.
 
 Evidence: <div align="left">
 <img alt="Screenshot 2026-07-29 115703" src="evidence lab1/task7.png">
+</div>
+
 
 ## Authentication vs. Authorization
 
@@ -425,6 +434,8 @@ This confirms that the `dev-user-binding` RoleBinding connects the `devsofia` se
 
 Evidence: <div align="left">
 <img alt="Screenshot 2026-07-29 115703" src="evidence lab1/verify.png">
+</div>
+
 ---
 
 ## Short-Answer Questions
