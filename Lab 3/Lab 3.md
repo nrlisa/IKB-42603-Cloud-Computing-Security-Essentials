@@ -259,6 +259,9 @@ aws $EP kms decrypt --ciphertext-blob fileb://datakey.enc 2>&1 | head -3
 Evidence: <div align="left">
 <img width="947" height="386" alt="lab3task6a" src="https://github.com/user-attachments/assets/6bfd5f8f-75ce-40a1-8cd4-fa0ea0b83503" />
 <img width="955" height="41" alt="lab3task6b" src="https://github.com/user-attachments/assets/9b825978-90fb-4906-a598-307579656809" />
+<img width="951" height="146" alt="lab3task6c (2)" src="https://github.com/user-attachments/assets/d7ab2d63-b784-4488-af88-b3f074319aff" />
+<img width="954" height="42" alt="lab3task6d" src="https://github.com/user-attachments/assets/5cb90fce-1a43-4904-862d-4483c76cf257" />
+
 </div>
 
 ---
