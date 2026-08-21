@@ -230,6 +230,8 @@ echo 'Only the KMS-wrapped data key (datakey.enc) remains.'
 **Note:** To read the data later you send `datakey.enc` back to KMS (`kms decrypt`) to unwrap it, use it, then discard it. Only the small master key ever needs hardware-grade protection.
 
 Evidence: <div align="left">
+<img width="945" height="805" alt="lab3task5a" src="https://github.com/user-attachments/assets/fc2c78f0-5000-4692-8b85-1af6943b9196" />
+
 <img width="963" height="111" alt="lab3task5c" src="https://github.com/user-attachments/assets/97bceeea-4816-4373-926c-fb356c27a9bd" />
 </div>
 
