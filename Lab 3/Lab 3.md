@@ -111,7 +111,17 @@ diff record.txt record.dec.txt && echo 'MATCH: decryption successful'
 **Why:** AES-256-CBC with PBKDF2 key derivation and a random salt encrypts the file with a single shared key. One key does both encryption and decryption — fast, but the key must be protected.
 **Result:** `record.enc` is unreadable ciphertext, and `diff` confirms the decrypted file matches the original (`MATCH: decryption successful`).
 
-**In your report:** What is the key-distribution problem with symmetric encryption, and why does it matter for the cloud?
+What is the key-distribution problem with symmetric encryption, and why does it matter for the cloud?
+
+**Answer:** The key-distribution problem is that both the sender and receiver must possess the same secret key before any encrypted communication can occur, and that key must be transmitted through a separate, secure channel. If the key is intercepted during delivery, an attacker can decrypt all past and future messages.
+
+This matters for the cloud because:
+- **Scale:** A cloud environment may have thousands of instances, services and tenants — each needing keys. Sharing symmetric keys pairwise becomes unmanageable.
+- **No physical security:** Cloud storage and networks are virtualized and multi-tenant; there is no single trusted courier to deliver keys.
+- **Key lifecycle:** Keys must be rotated, revoked and destroyed — operations that are hard to coordinate when every party holds a copy.
+- **Compliance:** Regulations (PDPA, PCI-DSS) require centralised key control; distributing keys manually violates audit requirements.
+
+This is why cloud platforms use a Key Management Service (KMS) — it solves the distribution problem by keeping the master key in a hardware-protected module and letting services request encryption/decryption through API calls instead of sharing raw keys.
 
 Evidence: <div align="left">
 <img alt="AES-256 encryption and decryption with MATCH confirmation" src="evidence lab 3/lab3task1a.png">
@@ -201,8 +211,8 @@ aws $EP kms encrypt --key-id $KEY_A --plaintext "$(echo -n 'hello' | base64)" \
 **Result:** `kms create-key` returns a `KeyId` (captured into `KEY_A`), and `kms encrypt` returns a base64 ciphertext blob for `hello`.
 
 Evidence: <div align="left">
-<img alt="KMS create-key output with the captured KeyId" src="evidence lab 3/lab3task4a.png">
-<img alt="KMS encrypt output" src="evidence lab 3/lab3task4b.png">
+<img alt="KMS create-key output with the captured KeyId" src="evidence lab 3/lab3task.png">
+<img alt="KMS encrypt output" src="evidence lab 3/lab3task.png">
 </div>
 
 ---
@@ -233,6 +243,7 @@ Evidence: <div align="left">
 <img alt="Data key generation, local AES encryption and wrapped data key" src="evidence lab 3/task5.png">
 </div>
 
+# kena tambah confirmation +undo delete"
 ---
 
 ## Task 6 — Per-Tenant Keys & Cryptographic Erasure
@@ -297,7 +308,7 @@ openssl dgst -sha256 -verify public.pem -signature record.sig record.txt
 **Result:** `kms list-keys` shows the surviving keys, and the signature verifies with `Verified OK`.
 
 Evidence: <div align="left">
-<img alt="kms list-keys and RSA signature re-verification" src="evidence lab 3/verify.png">
+<img alt="kms list-keys and RSA signature re-verification" src="evidence lab 3/lab3verify.png">
 </div>
 
 ---

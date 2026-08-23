@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lab 2 — Commands Explained (Easy Words)</title>
+<style>
+  :root{
+    --bg:#f6f7fb; --card:#ffffff; --ink:#1c2333; --muted:#5b6478;
+    --line:#e3e7f0; --indigo:#4f46e5; --indigo-soft:#eef0fe;
+    --blue:#2563eb; --blue-soft:#e8f0fe;
+    --violet:#7c3aed; --violet-soft:#f1eafe;
+    --teal:#0d9488; --teal-soft:#e0f5f2;
+    --amber:#b45309; --amber-soft:#fdf1de;
+    --rose:#e11d48; --rose-soft:#fde8ee;
+    --green:#15803d; --green-soft:#e3f5e9;
+    --mono:"Cascadia Code","JetBrains Mono",Consolas,Menlo,monospace;
+    --shadow:0 1px 2px rgba(28,35,51,.05),0 8px 24px -12px rgba(28,35,51,.14);
+    --radius:14px;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html{scroll-behavior:smooth;}
+  body{background:var(--bg); color:var(--ink); font:16px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif; -webkit-font-smoothing:antialiased;}
+  .wrap{max-width:980px; margin:0 auto; padding:0 20px 96px;}
+
+  /* ---------- hero ---------- */
+  header.hero{background:linear-gradient(135deg,#3b2f6e 0%,#6d28d9 50%,#0d9488 130%); color:#fff; padding:56px 20px 48px;}
+  .hero-inner{max-width:980px; margin:0 auto;}
+  .kicker{display:inline-block; background:rgba(255,255,255,.16); border:1px solid rgba(255,255,255,.28); padding:4px 12px; border-radius:999px; font-size:13px; letter-spacing:.06em; text-transform:uppercase; font-weight:600;}
+  .hero h1{font-size:clamp(28px,5vw,44px); line-height:1.15; margin:16px 0 10px; font-weight:800;}
+  .hero p.sub{font-size:clamp(15px,2vw,18px); color:#e3e0ff; max-width:62ch;}
+  .hero .tags{margin-top:18px; display:flex; flex-wrap:wrap; gap:8px;}
+  .hero .tag{background:rgba(255,255,255,.14); border:1px solid rgba(255,255,255,.25); padding:5px 12px; border-radius:999px; font-size:13px;}
+
+  /* ---------- nav ---------- */
+  nav.toc{position:sticky; top:0; z-index:50; background:rgba(246,247,251,.92); backdrop-filter:blur(8px); border-bottom:1px solid var(--line);}
+  .toc-inner{max-width:980px; margin:0 auto; display:flex; gap:4px; overflow-x:auto; padding:8px 12px; scrollbar-width:thin;}
+  .toc-inner a{white-space:nowrap; color:var(--muted); text-decoration:none; font-size:13.5px; font-weight:600; padding:7px 12px; border-radius:999px; transition:background .15s,color .15s;}
+  .toc-inner a:hover{background:var(--indigo-soft); color:var(--indigo);}
+
+  /* ---------- sections ---------- */
+  section{margin-top:52px;}
+  .sec-label{font-size:13px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--indigo);}
+  h2{font-size:clamp(22px,3.2vw,30px); font-weight:800; margin:8px 0 6px; line-height:1.2;}
+  .lead{color:var(--muted); max-width:72ch; margin-bottom:22px;}
+  .card{background:var(--card); border:1px solid var(--line); border-radius:var(--radius); box-shadow:var(--shadow); padding:22px; margin-top:16px;}
+  .card h3{font-size:18px; font-weight:700; margin-bottom:8px; display:flex; align-items:center; gap:10px;}
+  .num{flex:0 0 auto; width:30px; height:30px; border-radius:9px; display:inline-flex; align-items:center; justify-content:center; font-size:15px; font-weight:800; color:#fff; background:var(--indigo);}
+
+  /* ---------- callouts ---------- */
+  .why{background:var(--amber-soft); border:1px solid #f2ddb0; border-left:4px solid var(--amber); border-radius:10px; padding:12px 16px; margin:14px 0 4px; font-size:14.5px;}
+  .why b{color:var(--amber);}
+  .tip{background:var(--teal-soft); border:1px solid #b7e3dc; border-left:4px solid var(--teal); border-radius:10px; padding:12px 16px; margin:14px 0 4px; font-size:14.5px;}
+  .tip b{color:var(--teal);}
+  .danger{background:var(--rose-soft); border:1px solid #f8c6d2; border-left:4px solid var(--rose); border-radius:10px; padding:12px 16px; margin:14px 0 4px; font-size:14.5px;}
+  .danger b{color:var(--rose);}
+
+  /* ---------- command tables ---------- */
+  table.cmds{width:100%; border-collapse:collapse; margin-top:14px; font-size:14.5px;}
+  table.cmds th{text-align:left; font-size:12px; text-transform:uppercase; letter-spacing:.06em; color:var(--muted); padding:8px 12px; border-bottom:2px solid var(--line);}
+  table.cmds td{padding:12px; border-bottom:1px solid var(--line); vertical-align:top;}
+  table.cmds tr:last-child td{border-bottom:none;}
+  table.cmds td.cmd{width:44%; min-width:280px;}
+  code{font-family:var(--mono); font-size:.92em; background:#eef0f6; border:1px solid #e0e4ee; border-radius:6px; padding:1px 6px; white-space:nowrap;}
+  td.cmd code{display:block; background:#1e2433; color:#d9e2ff; border:none; padding:8px 10px; border-radius:8px; font-size:12.5px; white-space:normal; word-break:break-word; line-height:1.5;}
+  td.cmd code b{color:#ffd479;}
+  .flag{display:inline-block; background:var(--blue-soft); color:var(--blue); border-radius:5px; padding:0 5px; font-size:12px; font-weight:700;}
+
+  /* ---------- diagram cards ---------- */
+  .diagram{background:linear-gradient(180deg,#ffffff, #fafbfe); border:1px solid var(--line); border-radius:var(--radius); padding:20px; margin-top:16px; overflow-x:auto;}
+  .diagram-title{font-size:13px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:var(--muted); margin-bottom:14px;}
+  .row{display:flex; gap:14px; flex-wrap:wrap; align-items:stretch;}
+  .box{flex:1 1 220px; border-radius:12px; border:1.5px solid; padding:14px 16px; font-size:14px; position:relative;}
+  .box .b-title{font-weight:800; font-size:15px; display:block; margin-bottom:4px;}
+  .box .b-sub{font-size:12.5px; color:var(--muted);}
+  .box ul{list-style:none; margin-top:8px; display:flex; flex-direction:column; gap:5px;}
+  .box li{font-size:12.5px; padding:3px 8px; border-radius:6px;}
+  .arrow{display:flex; align-items:center; justify-content:center; font-size:20px; color:var(--muted); flex:0 0 auto;}
+  .arrow-down{flex-direction:column; font-size:16px;}
+  .ib-indigo{border-color:#c7c9f8; background:var(--indigo-soft);} .ib-indigo .b-title{color:var(--indigo);}
+  .ib-blue{border-color:#c3d6fa; background:var(--blue-soft);} .ib-blue .b-title{color:var(--blue);}
+  .ib-violet{border-color:#ddd0f8; background:var(--violet-soft);} .ib-violet .b-title{color:var(--violet);}
+  .ib-teal{border-color:#bce5df; background:var(--teal-soft);} .ib-teal .b-title{color:var(--teal);}
+  .ib-rose{border-color:#f8c6d2; background:var(--rose-soft);} .ib-rose .b-title{color:var(--rose);}
+  .ib-green{border-color:#bcdcbf; background:var(--green-soft);} .ib-green .b-title{color:var(--green);}
+  .pill{display:inline-flex; align-items:center; gap:6px; border-radius:999px; padding:3px 10px; font-size:12px; font-weight:700;}
+  .pill-yes{background:var(--green-soft); color:var(--green); border:1px solid #bcdcbf;}
+  .pill-no{background:var(--rose-soft); color:var(--rose); border:1px solid #f8c6d2;}
+
+  /* ---------- tester ---------- */
+  .tester{background:var(--card); border:1px solid var(--line); border-radius:var(--radius); box-shadow:var(--shadow); margin-top:16px; overflow:hidden;}
+  .tester-head{background:#1e2433; color:#fff; padding:14px 20px; font-weight:700; display:flex; align-items:center; gap:10px; font-size:15px;}
+  .tester-head .dot{width:10px; height:10px; border-radius:50%; background:#34d399; box-shadow:0 0 0 3px rgba(52,211,153,.25);}
+  .scenario{border-bottom:1px solid var(--line);}
+  .scenario:last-child{border-bottom:none;}
+  .scenario button{width:100%; background:none; border:none; cursor:pointer; text-align:left; padding:16px 20px; font:inherit; color:inherit; display:flex; align-items:center; justify-content:space-between; gap:12px;}
+  .scenario button:hover{background:#fafbff;}
+  .scenario .q{font-weight:600; font-size:15px;}
+  .scenario .reveal{display:none; padding:0 20px 18px; font-size:14px; color:var(--muted); border-top:1px dashed var(--line); padding-top:14px;}
+  .scenario.open .reveal{display:block;}
+  .scenario .verdict{font-size:13px; font-weight:800; padding:4px 12px; border-radius:999px;}
+  .v-yes{background:var(--green-soft); color:var(--green);}
+  .v-no{background:var(--rose-soft); color:var(--rose);}
+  .scenario.open .verdict{display:none;}
+
+  /* ---------- toggle widget (task 4) ---------- */
+  .toggle-card{background:#1e2433; color:#fff; border-radius:var(--radius); padding:20px; margin-top:16px;}
+  .toggle-row{display:flex; align-items:center; justify-content:space-between; gap:14px; flex-wrap:wrap;}
+  .toggle-label{font-weight:700; font-size:15px; display:flex; align-items:center; gap:8px;}
+  .switch{position:relative; width:64px; height:32px; border-radius:999px; border:none; cursor:pointer; background:#4b5563; transition:background .2s; flex:0 0 auto;}
+  .switch::after{content:""; position:absolute; top:3px; left:3px; width:26px; height:26px; border-radius:50%; background:#fff; transition:transform .2s;}
+  .switch[aria-checked="true"]{background:#10b981;}
+  .switch[aria-checked="true"]::after{transform:translateX(32px);}
+  .probe{display:flex; gap:14px; align-items:stretch; margin-top:16px;}
+  .probe-box{flex:1 1 0; border-radius:12px; padding:16px; font-size:14px;}
+  .probe-box .pb-title{font-weight:800; font-size:13px; letter-spacing:.05em; text-transform:uppercase; margin-bottom:8px;}
+  .probe-box code{background:rgba(255,255,255,.12); border:none; color:#e5e7eb;}
+  .http200{background:var(--rose-soft); border:1px solid #f8c6d2; color:#7f1d3a;}
+  .http200 .pb-title{color:var(--rose);}
+  .timeout{background:var(--green-soft); border:1px solid #bcdcbf; color:#14532d;}
+  .timeout .pb-title{color:var(--green);}
+  .big-result{font-size:26px; font-weight:800; margin-top:6px;}
+  .muted-note{color:#94a3b8; font-size:12.5px; margin-top:6px;}
+  .dimmed{opacity:.35; filter:grayscale(.8);}
+
+  /* ---------- disk visual (task 6) ---------- */
+  .disk{margin-top:16px;}
+  .disk-row{display:flex; gap:20px; flex-wrap:wrap;}
+  .disk-half{flex:1 1 300px; background:#fff; border:1px solid var(--line); border-radius:12px; padding:16px;}
+  .disk-half h4{font-size:14px; margin-bottom:10px; display:flex; align-items:center; gap:8px;}
+  .sectors{display:grid; grid-template-columns:repeat(8,1fr); gap:4px;}
+  .sector{aspect-ratio:1; border-radius:4px; display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:700; color:#fff; min-height:22px;}
+  .s-free{background:#e5e7eb; color:#9ca3af;}
+  .s-data{background:#7c3aed;}
+  .s-deleted{background:#e11d48;}
+  .s-wiped{background:#10b981;}
+  .legend{display:flex; gap:14px; flex-wrap:wrap; margin-top:10px; font-size:12px; color:var(--muted);}
+  .legend span{display:inline-flex; align-items:center; gap:6px;}
+  .legend i{width:14px; height:14px; border-radius:4px; display:inline-block;}
+
+  /* ---------- flag glossary ---------- */
+  .flags{display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:10px; margin-top:14px;}
+  .flag-card{background:#fff; border:1px solid var(--line); border-radius:10px; padding:10px 14px; font-size:13.5px; display:flex; gap:10px; align-items:flex-start;}
+  .flag-card code{flex:0 0 auto; font-weight:700;}
+
+  /* ---------- recap ---------- */
+  .recap{display:grid; grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); gap:16px; margin-top:16px;}
+  .recap .card{margin-top:0;}
+
+  footer{margin-top:64px; text-align:center; color:var(--muted); font-size:13.5px;}
+
+  @media (prefers-reduced-motion: reduce){
+    html{scroll-behavior:auto;}
+    *{transition:none !important; animation:none !important;}
+  }
+  @media (max-width:640px){
+    table.cmds td.cmd{width:100%; display:block;}
+    table.cmds td:last-child{display:block; padding-top:2px;}
+    table.cmds th{display:none;}
+    .probe{flex-direction:column;}
+  }
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="hero-inner">
+    <span class="kicker">IKB 42603 · Cloud Computing Security Essentials</span>
+    <h1>Lab 2 — Commands Explained<br>in Easy Words</h1>
+    <p class="sub">Multi-tenant isolation: how two customers sharing one cluster are kept apart — compute, network, and storage — with every command translated into plain English.</p>
+    <div class="tags">
+      <span class="tag">🧱 Session A · Compute isolation</span>
+      <span class="tag">🕸️ Session B · Network &amp; storage isolation</span>
+      <span class="tag">🧪 One cluster, two tenants, three walls</span>
+    </div>
+  </div>
+</header>
+
+<nav class="toc">
+  <div class="toc-inner">
+    <a href="#bigpicture">Big picture</a>
+    <a href="#setup">Setup · Calico</a>
+    <a href="#task1">Task 1 · Two tenants</a>
+    <a href="#task2">Task 2 · Default-open</a>
+    <a href="#task3">Task 3 · Quota</a>
+    <a href="#task4">Task 4 · Default-deny</a>
+    <a href="#task5">Task 5 · Secrets</a>
+    <a href="#task6">Task 6 · Remanence</a>
+    <a href="#task7">Task 7 · Egress</a>
+    <a href="#flags">Flags</a>
+    <a href="#cleanup">Cleanup</a>
+    <a href="#takeaway">Takeaway</a>
+  </div>
+</nav>
+
+<div class="wrap">
+
+  <!-- ============ BIG PICTURE ============ -->
+  <section id="bigpicture">
+    <div class="sec-label">Step 0 · Big picture</div>
+    <h2>One cluster, two tenants, three walls</h2>
+    <p class="lead">Lab 2 asks: <b>can two customers ("tenants") share one cloud without seeing or hurting each other?</b> The answer is no — not by default. Isolation has to be built, in three dimensions.</p>
+
+    <div class="diagram">
+      <div class="diagram-title">The three isolation dimensions</div>
+      <div class="row">
+        <div class="box ib-blue">
+          <span class="b-title">🧱 Compute</span>
+          <span class="b-sub">Who gets the CPU/memory, and who can hog it.</span>
+          <ul>
+            <li>🏠 Namespaces — separate rooms (Task 1)</li>
+            <li>⚖️ ResourceQuota — spending limits (Task 3)</li>
+          </ul>
+        </div>
+        <div class="box ib-violet">
+          <span class="b-title">🕸️ Network</span>
+          <span class="b-sub">Can pods in one room dial pods in another?</span>
+          <ul>
+            <li>🚪 The default-open risk (Task 2)</li>
+            <li>🧱 NetworkPolicy default-deny (Task 4)</li>
+            <li>🔬 Egress allow-list (Task 7)</li>
+          </ul>
+        </div>
+        <div class="box ib-teal">
+          <span class="b-title">💾 Storage</span>
+          <span class="b-sub">Can tenant A read tenant B's data — even after deletion?</span>
+          <ul>
+            <li>🔐 Secrets locked with RBAC (Task 5)</li>
+            <li>👻 Data remanence (Task 6)</li>
+          </ul>
+        </div>
+      </div>
+      <p class="b-sub" style="margin-top:12px;">The lab's rhythm, repeated every time: <b>show the problem → apply the control → re-run the same test</b> to prove the change. Every claim in the report is backed by a before/after comparison.</p>
+    </div>
+  </section>
+
+  <!-- ============ SETUP ============ -->
+  <section id="setup">
+    <div class="sec-label">Before the tasks</div>
+    <h2>Setup — build the cluster and hire the network police</h2>
+    <p class="lead">kind's default networking can't enforce NetworkPolicy — the "walls" between rooms. So the lab builds a cluster with the default plugin switched off, then installs <b>Calico</b>, which can.</p>
+
+    <div class="card">
+      <h3><span class="num">S</span>The commands</h3>
+      <table class="cmds">
+        <tr><th>Command</th><th>What it does, in easy words</th></tr>
+        <tr><td class="cmd"><code>cat &lt;&lt;EOF | kind create cluster<br>--name ccse-lab2 --config=-</code></td><td>Creates a disposable Kubernetes cluster in Docker. The config file turns <b>off</b> the default networking plugin and sets a private pod network — because the default plugin ignores NetworkPolicy.</td></tr>
+        <tr><td class="cmd"><code>kubectl apply -f<br>https://...calico.yaml</code></td><td>Installs <b>Calico</b> — the network police force that can actually enforce NetworkPolicy rules. Without it, Task 4's wall wouldn't hold.</td></tr>
+        <tr><td class="cmd"><code>kubectl -n kube-system rollout status<br>daemonset/calico-node --timeout=180s</code></td><td>"Wait until every Calico officer is on duty" — blocks until the <code>calico-node</code> agents on all nodes report ready (or gives up after 180s).</td></tr>
+      </table>
+      <div class="why"><b>Why:</b> the whole lab depends on NetworkPolicy actually working. Calico makes that possible; the <code>rollout status</code> proves it's deployed before anyone builds a wall.</div>
+    </div>
+  </section>
+
+  <!-- ============ TASK 1 ============ -->
+  <section id="task1">
+    <div class="sec-label">Session A · Task 1</div>
+    <h2>Two tenants, two rooms, one cluster</h2>
+    <p class="lead">Each tenant gets its own <b>namespace</b> (a room) and its own web server with a <b>Service</b> (a phone number).</p>
+
+    <div class="diagram">
+      <div class="diagram-title">The layout</div>
+      <div class="row">
+        <div class="box ib-indigo" style="flex:1.4;">
+          <span class="b-title">🏠 Namespace: tenant-a</span>
+          <ul>
+            <li>🌐 Deployment <code>web</code> (nginx)</li>
+            <li>📞 Service <code>web</code> :80</li>
+          </ul>
+        </div>
+        <div class="box ib-violet" style="flex:1.4;">
+          <span class="b-title">🏠 Namespace: tenant-b</span>
+          <ul>
+            <li>🌐 Deployment <code>web</code> (nginx)</li>
+            <li>📞 Service <code>web</code> :80</li>
+          </ul>
+        </div>
+      </div>
+      <p class="b-sub" style="margin-top:12px;">Two rooms on the same floor. The doors are <b>unlocked</b> — that's the problem Task 2 demonstrates.</p>
+    </div>
+
+    <div class="card">
+      <h3><span class="num">1</span>The commands</h3>
+      <table class="cmds">
+        <tr><th>Command</th><th>What it does</th></tr>
+        <tr><td class="cmd"><code>kubectl create namespace tenant-a</code><br><code>kubectl create namespace tenant-b</code></td><td>Makes two separate <b>rooms</b> for the two tenants on the same cluster. Each room holds its own toys, kept logically apart.</td></tr>
+        <tr><td class="cmd"><code>kubectl -n tenant-a create deployment web<br>--image=nginx</code></td><td>Deploys a web server (nginx) inside <code>tenant-a</code>'s room. <span class="flag">-n</span> says "which room".</td></tr>
+        <tr><td class="cmd"><code>kubectl -n tenant-a expose deployment web<br>--port=80</code></td><td>Gives the web server a <b>phone number</b> (a Service), so other pods can dial it by name/IP.</td></tr>
+        <tr><td class="cmd"><code>kubectl get pods,svc -n tenant-a</code></td><td>Lists pods and services in <code>tenant-a</code> — checks the pod is <code>Running</code> and the Service got an IP before testing anything.</td></tr>
+      </table>
+      <div class="tip"><b>Mental model:</b> <code>create namespace</code> = open a new room; <code>create deployment</code> = put a worker in it; <code>expose</code> = give the worker a phone number.</div>
+    </div>
+  </section>
+
+  <!-- ============ TASK 2 ============ -->
+  <section id="task2">
+    <div class="sec-label">Session A · Task 2</div>
+    <h2>The default-open risk — no wall between rooms</h2>
+    <p class="lead">Namespaces are <b>labels, not walls</b>. Nothing stops a pod in one room from dialing a pod in another. The probe proves it.</p>
+
+    <div class="card">
+      <h3><span class="num">2</span>The commands</h3>
+      <table class="cmds">
+        <tr><th>Command</th><th>What it does</th></tr>
+        <tr><td class="cmd"><code>kubectl get svc web -n tenant-b<br>-o jsonpath='{.spec.clusterIP}'; echo</code></td><td>Finds <code>tenant-b</code>'s web server phone number (ClusterIP). <span class="flag">-o jsonpath</span> = "extract just the IP field"; <code>echo</code> adds a newline.</td></tr>
+        <tr><td class="cmd"><code>kubectl -n tenant-a run probe --rm -it<br>--image=curlimages/curl --restart=Never --<br>curl -s -m 5 http://&lt;B_IP&gt;<br>-o /dev/null -w 'HTTP %{http_code}\n'</code></td><td>From inside <code>tenant-a</code>'s room, dials <code>tenant-b</code>'s web server. <span class="flag">--rm</span> = delete the probe pod when done; <span class="flag">-it</span> = interactive terminal; <span class="flag">--image=curlimages/curl</span> = a tiny container with <code>curl</code>; <span class="flag">-m 5</span> = 5-second timeout; <span class="flag">-o /dev/null</span> = throw away the page; <span class="flag">-w 'HTTP %{http_code}'</span> = print only the status code.</td></tr>
+      </table>
+      <div class="danger"><b>Result: HTTP 200.</b> Tenant A reached tenant B — a cross-tenant breach waiting to happen. This is the "default-open" problem: isolation is <b>not automatic</b> on shared infrastructure.</div>
+      <div class="why"><b>Why remember this?</b> Task 4 re-runs this <em>exact</em> command after building a wall. The before/after difference (200 → timeout) is the proof that the control works.</div>
+    </div>
+  </section>
+
+  <!-- ============ TASK 3 ============ -->
+  <section id="task3">
+    <div class="sec-label">Session A · Task 3</div>
+    <h2>Contain the noisy neighbour — ResourceQuota</h2>
+    <p class="lead">Isolation isn't only walls — one greedy tenant could hog all CPU and memory and slow everyone down. The quota sets a spending limit.</p>
+
+    <div class="card">
+      <h3><span class="num">3</span>The commands</h3>
+      <table class="cmds">
+        <tr><th>Command</th><th>What it does</th></tr>
+        <tr><td class="cmd"><code>cat &lt;&lt;EOF | kubectl apply -f -</code><br>+ ResourceQuota YAML</td><td>Feeds a quota form to the cluster: <code>tenant-a</code> is allowed at most <b>5 pods, 1 CPU, 512Mi memory</b> — like a spending limit on a shared credit card.</td></tr>
+        <tr><td class="cmd"><code>kubectl describe resourcequota<br>tenant-a-quota -n tenant-a</code></td><td>Shows the quota's limits and current usage — proof the limit is in place and enforced.</td></tr>
+      </table>
+      <div class="tip"><b>Mental model:</b> the quota is a <b>house rule</b>, not a wall. It doesn't stop tenant A from talking to tenant B — it stops tenant A from eating the whole pizza.</div>
+    </div>
+  </section>
+
+  <!-- ============ TASK 4 ============ -->
+  <section id="task4">
+    <div class="sec-label">Session B · Task 4</div>
+    <h2>Default-deny network isolation — build the wall</h2>
+    <p class="lead">A NetworkPolicy with <code>podSelector: {}</code> and no rules means <b>nobody is allowed in</b>. Flip the switch below to see the same probe change.</p>
+
+    <div class="toggle-card">
+      <div class="toggle-row">
+        <span class="toggle-label">🧱 NetworkPolicy <code>default-deny-ingress</code> on tenant-b</span>
+        <button class="switch" id="npToggle" role="switch" aria-checked="false" aria-label="Toggle NetworkPolicy"></button>
+      </div>
+      <div class="probe">
+        <div class="probe-box http200" id="beforeBox">
+          <div class="pb-title">Before · Task 2 (no policy)</div>
+          <div class="big-result">HTTP 200</div>
+          <div class="muted-note">tenant-a reached tenant-b — <b>default-open</b> 🚨</div>
+        </div>
+        <div class="probe-box timeout dimmed" id="afterBox">
+          <div class="pb-title">After · Task 4 (default-deny)</div>
+          <div class="big-result">Timeout</div>
+          <div class="muted-note">traffic blocked — <b>wall holds</b> ✅</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3><span class="num">4</span>The commands</h3>
+      <table class="cmds">
+        <tr><th>Command</th><th>What it does</th></tr>
+        <tr><td class="cmd"><code>cat &lt;&lt;EOF | kubectl apply -f -</code><br>+ NetworkPolicy YAML</td><td>Builds the wall around <code>tenant-b</code>. <code>podSelector: {}</code> = applies to <b>every</b> pod in the room; <code>policyTypes: [Ingress]</code> with no rules = <b>no one is allowed in</b>. Blocked unless a rule explicitly says otherwise.</td></tr>
+        <tr><td class="cmd"><code>kubectl -n tenant-a run probe --rm -it<br>--image=curlimages/curl --restart=Never --<br>curl -s -m 5 http://&lt;B_IP&gt;<br>-o /dev/null -w 'HTTP %{http_code}\n'</code></td><td>The <b>exact same probe</b> as Task 2 — same command, same network, different result: <b>timeout</b> instead of <code>HTTP 200</code>.</td></tr>
+      </table>
+      <div class="why"><b>Why this is the lab's best proof:</b> identical command, only the policy changed. That single controlled difference is what makes the isolation test valid.</div>
+    </div>
+  </section>
+
+  <!-- ============ TASK 5 ============ -->
+  <section id="task5">
+    <div class="sec-label">Session B · Task 5</div>
+    <h2>Storage isolation — secrets behind RBAC</h2>
+    <p class="lead">Secrets are like keys in a drawer. Tenant A's robot identity gets a job description that only opens <b>its own</b> drawer — never the other tenant's.</p>
+
+    <div class="diagram">
+      <div class="diagram-title">The RBAC chain (same idea as Lab 1)</div>
+      <div class="row">
+        <div class="box ib-violet">
+          <span class="b-title">🤖 ServiceAccount <code>app-a</code></span>
+          <span class="b-sub">robot identity in <code>tenant-a</code></span>
+        </div>
+        <div class="arrow">➜</div>
+        <div class="box ib-teal">
+          <span class="b-title">🔗 RoleBinding <code>rb</code></span>
+          <span class="b-sub">hires <code>app-a</code> for the job, in <code>tenant-a</code> only</span>
+        </div>
+        <div class="arrow">➜</div>
+        <div class="box ib-blue">
+          <span class="b-title">📋 Role <code>reader</code></span>
+          <span class="b-sub">job description: may only <code>get</code> secrets</span>
+        </div>
+        <div class="arrow">➜</div>
+        <div class="box ib-indigo">
+          <span class="b-title">🔐 Secret <code>data</code></span>
+          <span class="b-sub">the drawer it may open — in <code>tenant-a</code>, value <code>SECRET_A</code></span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3><span class="num">5</span>The commands</h3>
+      <table class="cmds">
+        <tr><th>Command</th><th>What it does</th></tr>
+        <tr><td class="cmd"><code>kubectl -n tenant-a create secret generic data<br>--from-literal=value=SECRET_A</code></td><td>Stores a secret (like a password) in <code>tenant-a</code>'s room. <span class="flag">--from-literal</span> = "here's the value directly".</td></tr>
+        <tr><td class="cmd"><code>kubectl -n tenant-b create secret generic data<br>--from-literal=value=SECRET_B</code></td><td>Same for <code>tenant-b</code> — a different secret.</td></tr>
+        <tr><td class="cmd"><code>kubectl -n tenant-a create serviceaccount app-a</code></td><td>Creates a <b>robot identity</b> representing <code>tenant-a</code>'s application.</td></tr>
+        <tr><td class="cmd"><code>kubectl -n tenant-a create role reader<br>--verb=get --resource=secrets</code></td><td>Writes the job description: may only <b>read</b> (<code>get</code>) secrets — nothing else.</td></tr>
+        <tr><td class="cmd"><code>kubectl -n tenant-a create rolebinding rb<br>--role=reader --serviceaccount=tenant-a:app-a</code></td><td>Hires <code>app-a</code> for that job. A role does nothing until it's <b>bound</b> to an identity.</td></tr>
+        <tr><td class="cmd"><code>SA=system:serviceaccount:tenant-a:app-a</code></td><td>Stores the robot's <b>full address</b> in a variable so the checks below can pretend to be it.</td></tr>
+        <tr><td class="cmd"><code>kubectl auth can-i get secrets -n tenant-a<br>--as=$SA</code></td><td>"Can this robot read secrets in tenant-a?" → <span class="pill pill-yes">yes</span> (explicitly allowed).</td></tr>
+        <tr><td class="cmd"><code>kubectl auth can-i get secrets -n tenant-b<br>--as=$SA</code></td><td>"Can it read secrets in tenant-b?" → <span class="pill pill-no">no</span> — no permission exists there, even though it's the same cluster.</td></tr>
+      </table>
+      <div class="tip"><b>Takeaway:</b> the robot can open its own drawer, but the other tenant's drawer is locked — <b>storage isolation</b>, proven with the same <code>auth can-i</code> trick from Lab 1.</div>
+    </div>
+  </section>
+
+  <!-- ============ TASK 6 ============ -->
+  <section id="task6">
+    <div class="sec-label">Session B · Task 6</div>
+    <h2>Data remanence — deleted ≠ gone</h2>
+    <p class="lead"><code>rm</code> only removes the <b>address label</b> for a file — the bytes often stay on disk. Hover the disk below: normal delete leaves red recoverable blocks; a wipe zeroes them out.</p>
+
+    <div class="disk">
+      <div class="disk-row">
+        <div class="disk-half">
+          <h4>😱 Normal delete (<code>rm</code>)</h4>
+          <div class="sectors">
+            <div class="sector s-free">·</div><div class="sector s-free">·</div><div class="sector s-data">P</div><div class="sector s-data">A</div>
+            <div class="sector s-data">T</div><div class="sector s-data">I</div><div class="sector s-data">E</div><div class="sector s-data">N</div>
+            <div class="sector s-data">T</div><div class="sector s-data">·</div><div class="sector s-free">·</div><div class="sector s-free">·</div>
+            <div class="sector s-free">·</div><div class="sector s-free">·</div><div class="sector s-free">·</div><div class="sector s-free">·</div>
+          </div>
+          <div class="legend">
+            <span><i class="s-data"></i> original bytes</span>
+            <span><i class="s-deleted"></i> "deleted" — still there</span>
+          </div>
+          <p class="b-sub" style="margin-top:8px;">The label is gone, but <code>grep</code> still finds <code>SENSITIVE-PATIENT-RECORD</code> on disk.</p>
+        </div>
+        <div class="disk-half">
+          <h4>✅ Secure wipe (<code>dd</code> zeros + <code>rm</code>)</h4>
+          <div class="sectors">
+            <div class="sector s-free">·</div><div class="sector s-free">·</div><div class="sector s-wiped">0</div><div class="sector s-wiped">0</div>
+            <div class="sector s-wiped">0</div><div class="sector s-wiped">0</div><div class="sector s-wiped">0</div><div class="sector s-wiped">0</div>
+            <div class="sector s-wiped">0</div><div class="sector s-free">·</div><div class="sector s-free">·</div><div class="sector s-free">·</div>
+            <div class="sector s-free">·</div><div class="sector s-free">·</div><div class="sector s-free">·</div><div class="sector s-free">·</div>
+          </div>
+          <div class="legend">
+            <span><i class="s-wiped"></i> overwritten with zeros</span>
+          </div>
+          <p class="b-sub" style="margin-top:8px;">Nothing to recover. In real clouds you can't touch the physical disk — so <b>cryptographic erasure</b> (destroy the key) is the practical answer.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3><span class="num">6</span>The commands</h3>
+      <table class="cmds">
+        <tr><th>Command</th><th>What it does</th></tr>
+        <tr><td class="cmd"><code>docker run --rm -v ccse-vol:/data alpine sh -c<br>'echo SENSITIVE-PATIENT-RECORD &gt; /data/phi.txt;<br>sync; rm /data/phi.txt;<br>grep -a SENSITIVE /data/* 2&gt;/dev/null;<br>echo scan-done'</code></td><td>Starts a tiny Linux container, mounts a disk volume (<code>ccse-vol</code>) at <code>/data</code>, then runs a mini-script: <b>write</b> a sensitive file → <b>flush</b> to disk (<code>sync</code>) → <b>delete</b> normally (<code>rm</code>) → <b>scan</b> (<code>grep</code>) to see if the bytes survived. <span class="flag">--rm</span> = remove container when done; <span class="flag">-v</span> = attach the volume; <code>sh -c '…'</code> = run the quoted script.</td></tr>
+        <tr><td class="cmd"><code>docker run --rm -v ccse-vol:/data alpine sh -c<br>'echo SENSITIVE &gt; /data/phi2.txt; sync;<br>dd if=/dev/zero of=/data/phi2.txt bs=1k<br>count=1 conv=notrunc; rm /data/phi2.txt;<br>echo wiped'</code></td><td>Same idea, but this time <b>overwrite</b> the file with zeros (<code>dd if=/dev/zero</code>) before deleting it — a secure wipe.</td></tr>
+      </table>
+      <div class="why"><b>Why it matters:</b> the first command proves the deleted secret is still readable (<b>data remanence</b>); the second shows overwriting before delete reduces the risk. Destroying the data's <em>key</em> instead — cryptographic erasure — is the scalable cloud answer.</div>
+    </div>
+  </section>
+
+  <!-- ============ TASK 7 ============ -->
+  <section id="task7">
+    <div class="sec-label">Extra Task 7 · Micro-segmentation</div>
+    <h2>Egress default-deny — deny out, allow only what's needed</h2>
+    <p class="lead">Task 4 blocked traffic <b>into</b> tenant-b. Task 7 blocks traffic <b>out of</b> tenant-a, then re-opens exactly two doors: DNS, and one specific service on one port.</p>
+
+    <div class="diagram">
+      <div class="diagram-title">The egress allow-list</div>
+      <div class="row">
+        <div class="box ib-violet" style="flex:1.2;">
+          <span class="b-title">📤 tenant-a (all pods)</span>
+          <span class="b-sub">baseline: <b>default-deny-egress</b> — nothing goes out</span>
+        </div>
+        <div class="box ib-green" style="flex:1.6;">
+          <span class="b-title">✅ Two exceptions</span>
+          <ul>
+            <li>🌐 <code>allow-dns-egress</code> → cluster DNS :53</li>
+            <li>🕸️ <code>allow-tenant-b-web</code> → tenant-b <code>app=web</code> :80 only</li>
+          </ul>
+        </div>
+        <div class="box ib-rose" style="flex:1.2;">
+          <span class="b-title">🚫 Everything else</span>
+          <span class="b-sub">blocked — internet, other ports, other pods</span>
+        </div>
+      </div>
+      <p class="b-sub" style="margin-top:12px;">And because tenant-b has <b>default-deny ingress</b>, a matching <code>allow-tenant-a-to-web</code> rule in tenant-b is the "welcome mat" that lets the allowed traffic arrive. Both sides must agree.</p>
+    </div>
+
+    <div class="tester">
+      <div class="tester-head"><span class="dot"></span> Egress quiz — which traffic is allowed?</div>
+      <div class="scenario">
+        <button data-v="yes"><span class="q">tenant-a → DNS server (UDP/TCP 53)</span><span class="verdict v-yes">allowed</span></button>
+        <div class="reveal">✅ <b>Allowed.</b> The <code>allow-dns-egress</code> exception lets pods resolve names — apps need DNS to work.</div>
+      </div>
+      <div class="scenario">
+        <button data-v="yes"><span class="q">tenant-a → tenant-b <code>app=web</code> on port 80</span><span class="verdict v-yes">allowed</span></button>
+        <div class="reveal">✅ <b>Allowed.</b> The <code>allow-tenant-b-web</code> rule (out) + <code>allow-tenant-a-to-web</code> rule (in) agree on this exact path. The probe returns <code>HTTP 200</code>.</div>
+      </div>
+      <div class="scenario">
+        <button data-v="no"><span class="q">tenant-a → tenant-b <code>app=web</code> on port 22</span><span class="verdict v-no">denied</span></button>
+        <div class="reveal">🚫 <b>Denied.</b> Only TCP port 80 is in the allow rule — SSH is not.</div>
+      </div>
+      <div class="scenario">
+        <button data-v="no"><span class="q">tenant-a → the internet (HTTPS 443)</span><span class="verdict v-no">denied</span></button>
+        <div class="reveal">🚫 <b>Denied.</b> No exception covers it. Deny by default, permit only what's explicitly required.</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3><span class="num">7</span>The commands</h3>
+      <table class="cmds">
+        <tr><th>Command</th><th>What it does</th></tr>
+        <tr><td class="cmd"><code>kubectl get pods -n tenant-b --show-labels</code></td><td>Checks the web pod's <b>name tags</b> (labels). The <code>app=web</code> label is the address used to allow traffic to exactly this workload.</td></tr>
+        <tr><td class="cmd"><code>kubectl get svc web -n tenant-b</code></td><td>Verifies the target service exists and exposes port 80.</td></tr>
+        <tr><td class="cmd"><code>cat &lt;&lt;EOF | kubectl apply -f -</code><br>+ <code>default-deny-egress</code> (in tenant-a)</td><td>Blocks <b>all outgoing</b> traffic from tenant-a's pods — the deny-by-default baseline.</td></tr>
+        <tr><td class="cmd"><code>cat &lt;&lt;EOF | kubectl apply -f -</code><br>+ <code>allow-dns-egress</code> (in tenant-a)</td><td>First exception: DNS (UDP/TCP 53) to the cluster's DNS pods in <code>kube-system</code>.</td></tr>
+        <tr><td class="cmd"><code>cat &lt;&lt;EOF | kubectl apply -f -</code><br>+ <code>allow-tenant-b-web</code> (in tenant-a)</td><td>Second exception: outbound traffic <b>only</b> to pods labelled <code>app=web</code> in tenant-b, only on TCP 80.</td></tr>
+        <tr><td class="cmd"><code>cat &lt;&lt;EOF | kubectl apply -f -</code><br>+ <code>allow-tenant-a-to-web</code> (in tenant-b)</td><td>The matching "welcome mat": since tenant-b has default-deny <em>ingress</em>, this rule lets the traffic from tenant-a arrive at the web pod.</td></tr>
+        <tr><td class="cmd"><code>kubectl -n tenant-a run probe-allowed --rm -it<br>--image=curlimages/curl --restart=Never --<br>curl -s -m 5 http://10.96.207.129<br>-o /dev/null -w 'HTTP %{http_code}\n'</code></td><td>The test: dial the web service through all the walls. Returns <code>HTTP 200</code> — the specifically allowed path still works.</td></tr>
+        <tr><td class="cmd"><code>kubectl -n tenant-a run dns-test --rm -it<br>--image=busybox:1.36 --restart=Never --<br>nslookup kubernetes.default.svc.cluster.local</code></td><td>The DNS test: resolves a service name through the cluster DNS — proves the DNS exception works.</td></tr>
+        <tr><td class="cmd"><code>kubectl get networkpolicy -A</code></td><td>The final photo of every policy across all namespaces — the complete micro-segmentation map.</td></tr>
+      </table>
+      <div class="why"><b>Key principle:</b> the goal is <b>not</b> to block all egress. It's to block egress <em>by default</em>, then explicitly allow only what the workload needs — <b>deny by default, permit by exception</b>.</div>
+    </div>
+  </section>
+
+  <!-- ============ FLAGS ============ -->
+  <section id="flags">
+    <div class="sec-label">Cheat sheet</div>
+    <h2>The flags you'll see everywhere</h2>
+    <p class="lead">Half of "understanding the command" is understanding the little flags. Here's every one used in Lab 2.</p>
+    <div class="flags">
+      <div class="flag-card"><code>-n</code><span><b>namespace</b> — which Kubernetes room the command applies to</span></div>
+      <div class="flag-card"><code>--name</code><span>give the cluster/object a <b>nickname</b> to reference later</span></div>
+      <div class="flag-card"><code>--config=-</code><span>read the cluster config from <b>standard input</b> (the heredoc), not a file</span></div>
+      <div class="flag-card"><code>--image=</code><span>which <b>container image</b> to run (nginx, curl, alpine, busybox)</span></div>
+      <div class="flag-card"><code>--rm</code><span><b>delete the pod when done</b> — throwaway probe containers</span></div>
+      <div class="flag-card"><code>-it</code><span><b>interactive terminal</b> — attach to the running container</span></div>
+      <div class="flag-card"><code>--restart=Never</code><span>run the probe <b>once</b> and exit (no auto-restart loop)</span></div>
+      <div class="flag-card"><code>--from-literal=</code><span>supply a value <b>directly</b> on the command line (secrets)</span></div>
+      <div class="flag-card"><code>-v ccse-vol:/data</code><span><b>mount a volume</b> at a folder inside the container</span></div>
+      <div class="flag-card"><code>sh -c '…'</code><span>run the <b>quoted script</b> inside the container</span></div>
+      <div class="flag-card"><code>--as=</code><span><b>impersonate</b> an identity for a can-i check</span></div>
+      <div class="flag-card"><code>-o jsonpath=</code><span>extract <b>one field</b> from the output (e.g. just the IP)</span></div>
+      <div class="flag-card"><code>-w '…'</code><span>curl's <b>write-out</b> — print a custom summary (e.g. status code)</span></div>
+      <div class="flag-card"><code>-m 5</code><span>curl <b>timeout</b> — give up after 5 seconds</span></div>
+    </div>
+  </section>
+
+  <!-- ============ CLEANUP ============ -->
+  <section id="cleanup">
+    <div class="sec-label">When you're done</div>
+    <h2>Cleanup — tear down the whole floor</h2>
+    <div class="card">
+      <table class="cmds">
+        <tr><th>Command</th><th>What it does</th></tr>
+        <tr><td class="cmd"><code>kind delete cluster --name ccse-lab2</code></td><td>Destroys the whole practice cluster — all rooms, walls, and robots.</td></tr>
+        <tr><td class="cmd"><code>docker volume rm ccse-vol</code></td><td>Removes the disk volume holding the leftover demo data — good hygiene, and the right instinct after a data-remanence lesson.</td></tr>
+      </table>
+      <div class="tip"><b>Why clean up?</b> These are disposable practice environments — and after Task 6, you know exactly why you don't leave sensitive bytes lying around.</div>
+    </div>
+  </section>
+
+  <!-- ============ TAKEAWAY ============ -->
+  <section id="takeaway">
+    <div class="sec-label">The whole lab in three lines</div>
+    <h2>One-line takeaway</h2>
+    <div class="recap">
+      <div class="card">
+        <h3 style="display:block;">🧱 Compute isolation</h3>
+        <p style="font-size:14.5px;color:var(--muted);">Namespaces put tenants in <b>separate rooms</b>; ResourceQuota stops one tenant <b>hogging the pizza</b>. (Tasks 1 &amp; 3)</p>
+      </div>
+      <div class="card">
+        <h3 style="display:block;">🕸️ Network isolation</h3>
+        <p style="font-size:14.5px;color:var(--muted);">Rooms are open by default — <b>NetworkPolicy default-deny</b> builds the wall, proven by <code>HTTP 200</code> → timeout. (Tasks 2, 4 &amp; 7)</p>
+      </div>
+      <div class="card">
+        <h3 style="display:block;">💾 Storage isolation</h3>
+        <p style="font-size:14.5px;color:var(--muted);">RBAC locks each tenant's secrets to its own room; deletion alone isn't enough — <b>remanence</b> means secure erase (or destroy the key). (Tasks 5 &amp; 6)</p>
+      </div>
+    </div>
+    <p class="lead" style="margin-top:18px;"><b>The lab's motto:</b> controls should be <em>tested and verified</em>, not assumed to work just because they're configured. Every wall here came with a before/after proof.</p>
+  </section>
+
+  <footer>Visual explainer for <b>Lab 2/Lab 2.md</b> + Extra Task 7 · based on "Lab 2 Commands Explained (Easy Words)" · IKB 42603</footer>
+</div>
+
+<script>
+  // --- Task 4 before/after toggle ---
+  const npToggle = document.getElementById('npToggle');
+  const beforeBox = document.getElementById('beforeBox');
+  const afterBox = document.getElementById('afterBox');
+  npToggle.addEventListener('click', () => {
+    const on = npToggle.getAttribute('aria-checked') === 'true'; // state before click
+    npToggle.setAttribute('aria-checked', String(!on));
+    // new state ON  -> before (HTTP 200) dims, after (timeout) lights
+    // new state OFF -> before lights, after dims
+    beforeBox.classList.toggle('dimmed', !on);
+    afterBox.classList.toggle('dimmed', on);
+  });
+  // initial: policy OFF -> before lit, after dimmed (already in HTML)
+
+  // --- quiz accordions ---
+  document.querySelectorAll('.scenario button').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const sc = btn.closest('.scenario');
+      const wasOpen = sc.classList.contains('open');
+      document.querySelectorAll('.scenario').forEach(s => s.classList.remove('open'));
+      if (!wasOpen) sc.classList.add('open');
+    });
+  });
+</script>
+</body>
+</html>
