@@ -240,7 +240,9 @@ echo 'Only the KMS-wrapped data key (datakey.enc) remains.'
 **Note:** To read the data later you send `datakey.enc` back to KMS (`kms decrypt`) to unwrap it, use it, then discard it. Only the small master key ever needs hardware-grade protection.
 
 Evidence: <div align="left">
-<img alt="Data key generation, local AES encryption and wrapped data key" src="evidence lab 3/task5.png">
+<img width="945" height="805" alt="lab3task5a" src="https://github.com/user-attachments/assets/fc2c78f0-5000-4692-8b85-1af6943b9196" />
+
+<img width="963" height="111" alt="lab3task5c" src="https://github.com/user-attachments/assets/97bceeea-4816-4373-926c-fb356c27a9bd" />
 </div>
 
 # kena tambah confirmation +undo delete"
@@ -268,7 +270,11 @@ aws $EP kms decrypt --ciphertext-blob fileb://datakey.enc 2>&1 | head -3
 **Caution:** Once the key that wrapped the data key is gone, `record.env.enc` is just noise — no one, not even the provider, can decrypt it. This is why per-object/per-tenant keys make deletion provable (Week 4).
 
 Evidence: <div align="left">
-<img alt="Failed kms decrypt after key erasure" src="evidence lab 3/task6.png">
+<img width="947" height="386" alt="lab3task6a" src="https://github.com/user-attachments/assets/6bfd5f8f-75ce-40a1-8cd4-fa0ea0b83503" />
+<img width="955" height="41" alt="lab3task6b" src="https://github.com/user-attachments/assets/9b825978-90fb-4906-a598-307579656809" />
+<img width="951" height="146" alt="lab3task6c (2)" src="https://github.com/user-attachments/assets/d7ab2d63-b784-4488-af88-b3f074319aff" />
+<img width="954" height="42" alt="lab3task6d" src="https://github.com/user-attachments/assets/5cb90fce-1a43-4904-862d-4483c76cf257" />
+
 </div>
 
 ---
@@ -293,7 +299,8 @@ for line in 'login ok' 'file read' 'export data'; do \
 **Result:** The two hashes differ after tampering, and the hash chain shows each entry embedding the previous entry's hash.
 
 Evidence: <div align="left">
-<img alt="Differing SHA-256 hashes and the tamper-evident hash chain" src="evidence lab 3/task7.png">
+<img width="961" height="308" alt="lab3task7" src="https://github.com/user-attachments/assets/a26b7a47-e47d-4291-a014-726694081b51" />
+
 </div>
 
 ---
