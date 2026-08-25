@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lab 3 — Data Protection: Encryption & Key Management</title>
+<style>
+  :root{
+    --bg:#f6f7fb; --card:#ffffff; --ink:#1c2333; --muted:#5b6478;
+    --line:#e3e7f0; --indigo:#4f46e5; --indigo-soft:#eef0fe;
+    --blue:#2563eb; --blue-soft:#e8f0fe;
+    --violet:#7c3aed; --violet-soft:#f1eafe;
+    --teal:#0d9488; --teal-soft:#e0f5f2;
+    --amber:#b45309; --amber-soft:#fdf1de;
+    --rose:#e11d48; --rose-soft:#fde8ee;
+    --green:#15803d; --green-soft:#e3f5e9;
+    --mono:"Cascadia Code","JetBrains Mono",Consolas,Menlo,monospace;
+    --shadow:0 1px 2px rgba(28,35,51,.05),0 8px 24px -12px rgba(28,35,51,.14);
+    --radius:14px;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html{scroll-behavior:smooth;}
+  body{background:var(--bg); color:var(--ink); font:16px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif; -webkit-font-smoothing:antialiased;}
+  .wrap{max-width:980px; margin:0 auto; padding:0 20px 96px;}
+
+  /* ---------- hero ---------- */
+  header.hero{background:linear-gradient(135deg,#312e81 0%,#4f46e5 55%,#6d28d9 100%); color:#fff; padding:56px 20px 48px;}
+  .hero-inner{max-width:980px; margin:0 auto;}
+  .kicker{display:inline-block; background:rgba(255,255,255,.16); border:1px solid rgba(255,255,255,.28); padding:4px 12px; border-radius:999px; font-size:13px; letter-spacing:.06em; text-transform:uppercase; font-weight:600;}
+  .hero h1{font-size:clamp(28px,5vw,44px); line-height:1.15; margin:16px 0 10px; font-weight:800;}
+  .hero p.sub{font-size:clamp(15px,2vw,18px); color:#dcd9ff; max-width:62ch;}
+  .hero .tags{margin-top:18px; display:flex; flex-wrap:wrap; gap:8px;}
+  .hero .tag{background:rgba(255,255,255,.14); border:1px solid rgba(255,255,255,.25); padding:5px 12px; border-radius:999px; font-size:13px;}
+
+  /* ---------- nav ---------- */
+  nav.toc{position:sticky; top:0; z-index:50; background:rgba(246,247,251,.92); backdrop-filter:blur(8px); border-bottom:1px solid var(--line);}
+  .toc-inner{max-width:980px; margin:0 auto; display:flex; gap:4px; overflow-x:auto; padding:8px 12px; scrollbar-width:thin;}
+  .toc-inner a{white-space:nowrap; color:var(--muted); text-decoration:none; font-size:13.5px; font-weight:600; padding:7px 12px; border-radius:999px; transition:background .15s,color .15s;}
+  .toc-inner a:hover{background:var(--indigo-soft); color:var(--indigo);}
+
+  /* ---------- sections ---------- */
+  section{margin-top:52px;}
+  .sec-label{font-size:13px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--indigo);}
+  h2{font-size:clamp(22px,3.2vw,30px); font-weight:800; margin:8px 0 6px; line-height:1.2;}
+  .lead{color:var(--muted); max-width:72ch; margin-bottom:22px;}
+  .card{background:var(--card); border:1px solid var(--line); border-radius:var(--radius); box-shadow:var(--shadow); padding:22px; margin-top:16px;}
+  .card h3{font-size:18px; font-weight:700; margin-bottom:8px; display:flex; align-items:center; gap:10px;}
+  .num{flex:0 0 auto; width:30px; height:30px; border-radius:9px; display:inline-flex; align-items:center; justify-content:center; font-size:15px; font-weight:800; color:#fff; background:var(--indigo);}
+
+  /* ---------- callouts ---------- */
+  .why{background:var(--amber-soft); border:1px solid #f2ddb0; border-left:4px solid var(--amber); border-radius:10px; padding:12px 16px; margin:14px 0 4px; font-size:14.5px;}
+  .why b{color:var(--amber);}
+  .tip{background:var(--teal-soft); border:1px solid #b7e3dc; border-left:4px solid var(--teal); border-radius:10px; padding:12px 16px; margin:14px 0 4px; font-size:14.5px;}
+  .tip b{color:var(--teal);}
+  .danger{background:var(--rose-soft); border:1px solid #f8c6d2; border-left:4px solid var(--rose); border-radius:10px; padding:12px 16px; margin:14px 0 4px; font-size:14.5px;}
+  .danger b{color:var(--rose);}
+
+  /* ---------- command tables ---------- */
+  table.cmds{width:100%; border-collapse:collapse; margin-top:14px; font-size:14.5px;}
+  table.cmds th{text-align:left; font-size:12px; text-transform:uppercase; letter-spacing:.06em; color:var(--muted); padding:8px 12px; border-bottom:2px solid var(--line);}
+  table.cmds td{padding:12px; border-bottom:1px solid var(--line); vertical-align:top;}
+  table.cmds tr:last-child td{border-bottom:none;}
+  table.cmds td.cmd{width:44%; min-width:280px;}
+  code{font-family:var(--mono); font-size:.92em; background:#eef0f6; border:1px solid #e0e4ee; border-radius:6px; padding:1px 6px; white-space:nowrap;}
+  td.cmd code{display:block; background:#1e2433; color:#d9e2ff; border:none; padding:8px 10px; border-radius:8px; font-size:12.5px; white-space:normal; word-break:break-word; line-height:1.5;}
+  td.cmd code b{color:#ffd479;}
+  .flag{display:inline-block; background:var(--blue-soft); color:var(--blue); border-radius:5px; padding:0 5px; font-size:12px; font-weight:700;}
+
+  /* ---------- diagram cards ---------- */
+  .diagram{background:linear-gradient(180deg,#ffffff, #fafbfe); border:1px solid var(--line); border-radius:var(--radius); padding:20px; margin-top:16px; overflow-x:auto;}
+  .diagram-title{font-size:13px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:var(--muted); margin-bottom:14px;}
+  .row{display:flex; gap:14px; flex-wrap:wrap; align-items:stretch;}
+  .box{flex:1 1 220px; border-radius:12px; border:1.5px solid; padding:14px 16px; font-size:14px; position:relative;}
+  .box .b-title{font-weight:800; font-size:15px; display:block; margin-bottom:4px;}
+  .box .b-sub{font-size:12.5px; color:var(--muted);}
+  .box ul{list-style:none; margin-top:8px; display:flex; flex-direction:column; gap:5px;}
+  .box li{font-size:12.5px; padding:3px 8px; border-radius:6px;}
+  .arrow{display:flex; align-items:center; justify-content:center; font-size:20px; color:var(--muted); flex:0 0 auto;}
+  .arrow-down{flex-direction:column; font-size:16px;}
+  .ib-indigo{border-color:#c7c9f8; background:var(--indigo-soft);} .ib-indigo .b-title{color:var(--indigo);}
+  .ib-blue{border-color:#c3d6fa; background:var(--blue-soft);} .ib-blue .b-title{color:var(--blue);}
+  .ib-violet{border-color:#ddd0f8; background:var(--violet-soft);} .ib-violet .b-title{color:var(--violet);}
+  .ib-teal{border-color:#bce5df; background:var(--teal-soft);} .ib-teal .b-title{color:var(--teal);}
+  .ib-rose{border-color:#f8c6d2; background:var(--rose-soft);} .ib-rose .b-title{color:var(--rose);}
+  .ib-green{border-color:#bcdcbf; background:var(--green-soft);} .ib-green .b-title{color:var(--green);}
+  .ib-amber{border-color:#f2ddb0; background:var(--amber-soft);} .ib-amber .b-title{color:var(--amber);}
+  .pill{display:inline-flex; align-items:center; gap:6px; border-radius:999px; padding:3px 10px; font-size:12px; font-weight:700;}
+  .pill-yes{background:var(--green-soft); color:var(--green); border:1px solid #bcdcbf;}
+  .pill-no{background:var(--rose-soft); color:var(--rose); border:1px solid #f8c6d2;}
+
+  /* ---------- can-i tester ---------- */
+  .tester{background:var(--card); border:1px solid var(--line); border-radius:var(--radius); box-shadow:var(--shadow); margin-top:16px; overflow:hidden;}
+  .tester-head{background:#1e2433; color:#fff; padding:14px 20px; font-weight:700; display:flex; align-items:center; gap:10px; font-size:15px;}
+  .tester-head .dot{width:10px; height:10px; border-radius:50%; background:#34d399; box-shadow:0 0 0 3px rgba(52,211,153,.25);}
+  .scenario{border-bottom:1px solid var(--line);}
+  .scenario:last-child{border-bottom:none;}
+  .scenario button{width:100%; background:none; border:none; cursor:pointer; text-align:left; padding:16px 20px; font:inherit; color:inherit; display:flex; align-items:center; justify-content:space-between; gap:12px;}
+  .scenario button:hover{background:#fafbff;}
+  .scenario .q{font-weight:600; font-size:15px;}
+  .scenario .reveal{display:none; padding:0 20px 18px; font-size:14px; color:var(--muted); border-top:1px dashed var(--line); padding-top:14px;}
+  .scenario.open .reveal{display:block;}
+  .scenario .verdict{font-size:13px; font-weight:800; padding:4px 12px; border-radius:999px;}
+  .v-yes{background:var(--green-soft); color:var(--green);}
+  .v-no{background:var(--rose-soft); color:var(--rose);}
+  .scenario.open .verdict{display:none;}
+
+  /* ---------- flag glossary ---------- */
+  .flags{display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:10px; margin-top:14px;}
+  .flag-card{background:#fff; border:1px solid var(--line); border-radius:10px; padding:10px 14px; font-size:13.5px; display:flex; gap:10px; align-items:flex-start;}
+  .flag-card code{flex:0 0 auto; font-weight:700;}
+
+  /* ---------- recap ---------- */
+  .recap{display:grid; grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); gap:16px; margin-top:16px;}
+  .recap .card{margin-top:0;}
+
+  /* ---------- checklist ---------- */
+  .checklist{list-style:none; margin-top:14px;}
+  .checklist li{padding:8px 12px; border-radius:8px; margin-bottom:6px; font-size:14.5px; display:flex; align-items:center; gap:10px;}
+  .checklist li:nth-child(odd){background:#fafbff;}
+  .check-icon{width:22px; height:22px; border-radius:6px; display:inline-flex; align-items:center; justify-content:center; font-size:13px; font-weight:800; color:#fff; background:var(--green); flex:0 0 auto;}
+
+  /* ---------- footer ---------- */
+  footer{margin-top:64px; text-align:center; color:var(--muted); font-size:13.5px;}
+
+  @media (prefers-reduced-motion: reduce){
+    html{scroll-behavior:auto;}
+    *{transition:none !important; animation:none !important;}
+  }
+  @media (max-width:640px){
+    table.cmds td.cmd{width:100%; display:block;}
+    table.cmds td:last-child{display:block; padding-top:2px;}
+    table.cmds th{display:none;}
+  }
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="hero-inner">
+    <span class="kicker">IKB 42603 · Cloud Computing Security Essentials</span>
+    <h1>Lab 3 — Data Protection<br>Encryption & Key Management</h1>
+    <p class="sub">At-rest and in-transit encryption, envelope encryption and cryptographic erasure — using OpenSSL &amp; LocalStack KMS.</p>
+    <div class="tags">
+      <span class="tag">🔐 Session A · AES-256 + RSA-2048</span>
+      <span class="tag">🛡️ Session B · KMS + Envelope Encryption</span>
+      <span class="tag">🔒 TLS for data in transit</span>
+      <span class="tag">🧪 Runs on OpenSSL + Docker + LocalStack</span>
+    </div>
+  </div>
+</header>
+
+<nav class="toc">
+  <div class="toc-inner">
+    <a href="#bigpicture">Big picture</a>
+    <a href="#setup">Setup</a>
+    <a href="#architecture">Architecture</a>
+    <a href="#task1">Task 1 · AES-256</a>
+    <a href="#task2">Task 2 · RSA</a>
+    <a href="#task3">Task 3 · TLS</a>
+    <a href="#sessionb">Session B · KMS</a>
+    <a href="#task4">Task 4 · Master Key</a>
+    <a href="#task5">Task 5 · Envelope</a>
+    <a href="#task6">Task 6 · Erasure</a>
+    <a href="#task7">Task 7 · Integrity</a>
+    <a href="#quiz">Test yourself</a>
+    <a href="#cleanup">Cleanup</a>
+    <a href="#takeaway">Takeaway</a>
+  </div>
+</nav>
+
+<div class="wrap">
+
+  <!-- ============ BIG PICTURE ============ -->
+  <section id="bigpicture">
+    <div class="sec-label">Step 0 · Big picture</div>
+    <h2>Two sessions: encryption by hand + key management at scale</h2>
+    <p class="lead">Lab 3 is about <b>data protection</b>: keeping secrets secret while they sit on disk (at rest) and while they travel across the network (in transit). You learn the crypto by hand, then see how a cloud KMS manages the keys.</p>
+    <div class="diagram">
+      <div class="diagram-title">The two halves of Lab 3</div>
+      <div class="row">
+        <div class="box ib-indigo">
+          <span class="b-title">🔑 Session A (Week 5) — Encryption Fundamentals</span>
+          <span class="b-sub">Learn the crypto primitives by hand with <b>OpenSSL</b>.</span>
+          <ul>
+            <li>🔒 Task 1 — AES-256 (symmetric, data at rest)</li>
+            <li>🔓 Task 2 — RSA-2048 (asymmetric + signatures)</li>
+            <li>🌐 Task 3 — TLS / HTTPS (data in transit)</li>
+          </ul>
+        </div>
+        <div class="arrow">➜</div>
+        <div class="box ib-violet">
+          <span class="b-title">🛡️ Session B (Week 6) — Key Management</span>
+          <span class="b-sub">Scale it up with <b>LocalStack KMS</b> — cloud-style key lifecycle.</span>
+          <ul>
+            <li>🔑 Task 4 — Create KMS master key</li>
+            <li>📦 Task 5 — Envelope encryption</li>
+          </ul>
+        </div>
+        <div class="box ib-teal">
+          <span class="b-title">🧹 + Integrity & Erasure</span>
+          <span class="b-sub">Prove deletion works and data hasn't been tampered with.</span>
+          <ul>
+            <li>💀 Task 6 — Per-tenant keys &amp; cryptographic erasure</li>
+            <li>🔍 Task 7 — SHA-256 hash chain (tamper-evidence)</li>
+          </ul>
+        </div>
+      </div>
+      <p class="b-sub" style="margin-top:12px;">Key takeaway: <b>encryption is only as strong as its key management</b>. The algorithm is public — the key is the real secret.</p>
+    </div>
+  </section>
+
+  <!-- ============ SETUP ============ -->
+  <section id="setup">
+    <div class="sec-label">Getting ready</div>
+    <h2>Environment Setup</h2>
+    <p class="lead">Before any crypto work, we need three tools: <b>OpenSSL</b> for encryption commands, <b>Docker Desktop</b> for containers, and a sample sensitive record to protect.</p>
+
+    <div class="card">
+      <h3><span class="num">1</span>Confirm tools are installed</h3>
+      <table class="cmds">
+        <tr><th>Command</th><th>What it does, in easy words</th></tr>
+        <tr><td class="cmd"><code>openssl version</code></td><td>Checks OpenSSL is available — it provides the <code>enc</code>, <code>genrsa</code>, <code>pkeyutl</code>, <code>req</code> and <code>dgst</code> commands we use everywhere.</td></tr>
+        <tr><td class="cmd"><code>docker --version</code></td><td>Confirms Docker Desktop is running. We need it for the nginx TLS server (Task 3) and LocalStack (Session B).</td></tr>
+      </table>
+    </div>
+
+    <div class="card">
+      <h3><span class="num">2</span>Create the sensitive record</h3>
+      <table class="cmds">
+        <tr><th>Command</th><th>What it does</th></tr>
+        <tr><td class="cmd"><code>echo 'Patient: Ahmad, Diagnosis: confidential' > record.txt</code></td><td>Makes a realistic patient record. The <b>same file</b> is used for AES encryption, RSA encryption, and TLS serving — so you can compare the methods side by side.</td></tr>
+      </table>
+      <div class="tip"><b>Why this matters:</b> using the same file across all tasks makes the comparison concrete — "how does AES vs RSA vs TLS each protect the same secret?"</div>
+    </div>
+  </section>
+
+  <!-- ============ ARCHITECTURE ============ -->
+  <section id="architecture">
+    <div class="sec-label">The cast of Lab 3</div>
+    <h2>Architecture — who protects what</h2>
+    <p class="lead">Data protection covers three dimensions: <b>at rest</b> (on disk), <b>in transit</b> (on the wire), and <b>integrity</b> (has anyone changed it?).</p>
+
+    <div class="diagram">
+      <div class="diagram-title">Data Protection Architecture (Lab 3)</div>
+      <div class="row">
+        <div class="box ib-indigo">
+          <span class="b-title">📦 Data at Rest</span>
+          <span class="b-sub">Data sitting on disk is encrypted so stealing the file is useless.</span>
+          <ul>
+            <li>🔒 <b>AES-256</b> — fast symmetric encryption (Task 1)</li>
+            <li>🔓 <b>RSA-2048</b> — asymmetric + digital signatures (Task 2)</li>
+          </ul>
+        </div>
+        <div class="box ib-blue">
+          <span class="b-title">🌐 Data in Transit</span>
+          <span class="b-sub">Data moving across the network is encrypted so eavesdroppers see gibberish.</span>
+          <ul>
+            <li>🔒 <b>TLS / HTTPS</b> — nginx serves the record over port 8443 (Task 3)</li>
+            <li>Self-signed cert proves the concept (real certs use a CA)</li>
+          </ul>
+        </div>
+        <div class="box ib-teal">
+          <span class="b-title">🔍 Integrity</span>
+          <span class="b-sub">Proof that nobody has changed the data.</span>
+          <ul>
+            <li>📋 <b>SHA-256 hash</b> — fingerprint of the file (Task 7)</li>
+            <li>🔗 <b>Hash chain</b> — each log entry includes the previous hash</li>
+          </ul>
+        </div>
+      </div>
+      <div class="row" style="margin-top:14px;">
+        <div class="box ib-violet" style="flex:2 1 420px;">
+          <span class="b-title">🔑 LocalStack KMS — The brain behind the keys</span>
+          <span class="b-sub">Manages master keys, implements envelope encryption, and makes deletion provable (Tasks 4–6).</span>
+          <ul>
+            <li>CMK (Customer Master Key) wraps data keys</li>
+            <li>Per-tenant isolation: one tenant's key can't decrypt another's data</li>
+            <li>Cryptographic erasure: destroy the key → data is permanently unrecoverable</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ TASK 1 ============ -->
+  <section id="task1">
+    <div class="sec-label">Session A · Task 1</div>
+    <h2>Symmetric Encryption — AES-256 (Data at Rest)</h2>
+    <p class="lead">One shared key does both encryption and decryption. Fast and strong — but <b>how do you share the key securely?</b></p>
+
+    <div class="card">
+      <h3><span class="num">1</span>The commands</h3>
+      <table class="cmds">
+        <tr><th>Command</th><th>What it does</th></tr>
+        <tr><td class="cmd"><code>openssl enc -aes-256-cbc -pbkdf2 -salt -in record.txt -out record.enc</code></td><td>Encrypts the file with AES-256. <span class="flag">-pbkdf2</span> = strong key derivation from a passphrase; <span class="flag">-salt</span> = random value to prevent rainbow-table attacks. You'll be prompted for a passphrase (the key).</td></tr>
+        <tr><td class="cmd"><code>cat record.enc</code></td><td>Proves the encrypted file is unreadable ciphertext — not the original patient record.</td></tr>
+        <tr><td class="cmd"><code>openssl enc -d -aes-256-cbc -pbkdf2 -in record.enc -out record.dec.txt</code></td><td>Decrypts back to plaintext. <span class="flag">-d</span> = decrypt mode.</td></tr>
+        <tr><td class="cmd"><code>diff record.txt record.dec.txt && echo 'MATCH: decryption successful'</code></td><td>Proves the round-trip worked — the decrypted file is identical to the original.</td></tr>
+      </table>
+      <div class="why"><b>Why this matters:</b> AES-256-CBC is the industry standard for encrypting data at rest. One key does both jobs — fast, but if that key leaks, everything is exposed.</div>
+    </div>
+
+    <div class="card">
+      <h3><span class="num">Q</span>In your report: What is the key-distribution problem?</h3>
+      <p style="font-size:14.5px; color:var(--muted); margin-bottom:12px;">What is the key-distribution problem with symmetric encryption, and why does it matter for the cloud?</p>
+      <p style="font-size:14.5px;"><b>Answer:</b> Both sender and receiver must possess the same secret key <em>before</em> any encrypted communication can occur, and that key must be transmitted through a separate, secure channel. If intercepted, an attacker can decrypt all past and future messages.</p>
+      <div class="why" style="margin-top:12px;"><b>This matters for the cloud because:</b></div>
+      <ul style="font-size:14.5px; margin:8px 0 0 20px;">
+        <li><b>Scale:</b> Thousands of instances, services and tenants each need keys — pairwise sharing is unmanageable.</li>
+        <li><b>No physical security:</b> Cloud storage is virtualized and multi-tenant — no trusted courier to deliver keys.</li>
+        <li><b>Key lifecycle:</b> Rotation, revocation and destruction are hard when every party holds a copy.</li>
+        <li><b>Compliance:</b> PDPA, PCI-DSS require centralised key control — manual distribution violates audit requirements.</li>
+      </ul>
+      <p style="font-size:14.5px; margin-top:12px;"><b>This is why cloud platforms use a KMS</b> — it keeps the master key in a hardware-protected module and lets services request encryption/decryption through API calls instead of sharing raw keys.</p>
+    </div>
+  </section>
+
+  <!-- ============ TASK 2 ============ -->
+  <section id="task2">
+    <div class="sec-label">Session A · Task 2</div>
+    <h2>Asymmetric Encryption & Digital Signatures — RSA-2048</h2>
+    <p class="lead">Two keys, two jobs: the <b>public key encrypts</b> (anyone can lock), the <b>private key decrypts</b> (only you can unlock). Signatures flip the roles — private signs, public verifies.</p>
+
+    <div class="card">
+      <h3><span class="num">2</span>The commands</h3>
+      <table class="cmds">
+        <tr><th>Command</th><th>What it does</th></tr>
+        <tr><td class="cmd"><code>openssl genrsa -out private.pem 2048</code></td><td>Generates a 2048-bit RSA private key. This is your secret — never share it.</td></tr>
+        <tr><td class="cmd"><code>openssl rsa -in private.pem -pubout -out public.pem</code></td><td>Extracts the public key from the private key. This one <em>can</em> be shared freely.</td></tr>
+        <tr><td class="cmd"><code>openssl pkeyutl -encrypt -pubin -inkey public.pem -in record.txt -out record.rsa</code></td><td>Encrypts with the <b>public key</b> — anyone can do this.</td></tr>
+        <tr><td class="cmd"><code>openssl pkeyutl -decrypt -inkey private.pem -in record.rsa -out record.rsa.txt</code></td><td>Decrypts with the <b>private key</b> — only the owner can do this.</td></tr>
+        <tr><td class="cmd"><code>openssl dgst -sha256 -sign private.pem -out record.sig record.txt</code></td><td>Signs the file with the private key — proves who created it.</td></tr>
+        <tr><td class="cmd"><code>openssl dgst -sha256 -verify public.pem -signature record.sig record.txt</code></td><td>Verifies the signature with the public key — output: <code>Verified OK</code>.</td></tr>
+      </table>
+      <div class="why"><b>Notice the role reversal:</b> encryption uses public, signing uses private. This is the basis of PKI and TLS — the same two-key system that protects HTTPS connections worldwide.</div>
+    </div>
+  </section>
+
+  <!-- ============ TASK 3 ============ -->
+  <section id="task3">
+    <div class="sec-label">Session A · Task 3</div>
+    <h2>Encryption in Transit — TLS / HTTPS</h2>
+    <p class="lead">Over plain HTTP, anyone on the network can read the record. TLS wraps the connection in encryption so eavesdroppers see gibberish.</p>
+
+    <div class="card">
+      <h3><span class="num">3</span>The commands</h3>
+      <table class="cmds">
+        <tr><th>Command</th><th>What it does</th></tr>
+        <tr><td class="cmd"><code>openssl req -x509 -newkey rsa:2048 -keyout key.pem -out cert.pem -days 7 -nodes -subj '/CN=localhost'</code></td><td>Creates a self-signed certificate for localhost. <span class="flag">-x509</span> = certificate format; <span class="flag">-days 7</span> = expires in a week; <span class="flag">-nodes</span> = no passphrase on the key.</td></tr>
+        <tr><td class="cmd"><code>docker run --rm -d --name tls -p 8443:443 -v $(pwd)/cert.pem:/etc/nginx/cert.pem -v $(pwd)/key.pem:/etc/nginx/key.pem -v $(pwd)/record.txt:/usr/share/nginx/html/record.txt nginx</code></td><td>Starts nginx in a container, serving the record over HTTPS on port 8443.</td></tr>
+        <tr><td class="cmd"><code>curl -k https://localhost:8443/record.txt</code></td><td>Connects over TLS and fetches the record. <span class="flag">-k</span> = accept the self-signed certificate (in production, a CA would sign it).</td></tr>
+      </table>
+      <div class="tip"><b>Compare with plain HTTP:</b> over HTTP the record would travel in cleartext and any on-path attacker could read it (eavesdropping). TLS makes intercepted traffic unreadable.</div>
+      <p style="font-size:14px; color:var(--muted); margin-top:12px;"><b>End of Session A.</b> Stop the TLS container: <code>docker stop tls</code>. Keep the ciphertext, keys, and outputs for the report.</p>
+    </div>
+  </section>
+
+  <!-- ============ SESSION B ============ -->
+  <section id="sessionb">
+    <div class="sec-label">Session B · Key Management at Scale</div>
+    <h2>Same idea, cloud-style</h2>
+    <p class="lead">Real cloud environments don't encrypt with a local passphrase. A <b>Key Management Service (KMS)</b> holds master keys in hardware, generates data keys on demand, and makes deletion provable.</p>
+
+    <div class="diagram">
+      <div class="diagram-title">How KMS solves the key-distribution problem</div>
+      <div class="row">
+        <div class="box ib-violet">
+          <span class="b-title">🔑 CMK (Master Key)</span>
+          <span class="b-sub">Lives inside KMS, never leaves the hardware module. Small, protected, rotates infrequently.</span>
+        </div>
+        <div class="arrow">⇩ wraps</div>
+        <div class="box ib-indigo">
+          <span class="b-title">📦 DEK (Data Key)</span>
+          <span class="b-sub">Random one-time key. Encrypts the actual data locally. Used once, then discarded.</span>
+        </div>
+        <div class="arrow">⇩ protects</div>
+        <div class="box ib-green">
+          <span class="b-title">📄 Encrypted Data</span>
+          <span class="b-sub">The actual patient record, encrypted with the DEK. The DEK is stored wrapped by the CMK alongside it.</span>
+        </div>
+      </div>
+      <p class="b-sub" style="margin-top:12px;">This is <b>envelope encryption</b>: the master key is too slow for bulk data, and the data key is too short-lived to need heavy protection. Together they give you both performance and security.</p>
+    </div>
+  </section>
+
+  <!-- ============ TASK 4 ============ -->
+  <section id="task4">
+    <div class="sec-label">Session B · Task 4</div>
+    <h2>Create and Use a KMS Master Key</h2>
+    <p class="lead">Instead of typing a passphrase locally (like Task 1), we ask the KMS to create a master key that never leaves its hardware boundary.</p>
+
+    <div class="card">
+      <h3><span class="num">4</span>The commands</h3>
+      <table class="cmds">
+        <tr><th>Command</th><th>What it does</th></tr>
+        <tr><td class="cmd"><code>EP='--endpoint-url=http://localhost:4566'</code></td><td>Creates a shortcut. Every later command types <code>$EP</code> instead of the long LocalStack URL.</td></tr>
+        <tr><td class="cmd"><code>aws $EP kms create-key --description 'CCSE tenant-A master key'</code></td><td>Asks KMS to create a Customer Master Key. Captures the <code>KeyId</code> for later use.</td></tr>
+        <tr><td class="cmd"><code>KEY_A=&lt;PASTE_KEYID&gt;</code></td><td>Saves the key ID so subsequent commands know which key to use.</td></tr>
+        <tr><td class="cmd"><code>aws $EP kms encrypt --key-id $KEY_A --plaintext "$(echo -n 'hello' | base64)" --query CiphertextBlob --output text</code></td><td>Encrypts a small secret directly with the master key — proves the key works. Returns a base64 ciphertext blob.</td></tr>
+      </table>
+      <div class="why"><b>Why this matters:</b> the master key is the cloud analogue of the passphrase from Task 1, but it never leaves the KMS. Encryption and decryption happen through API calls — no raw key is ever on disk.</div>
+    </div>
+  </section>
+
+  <!-- ============ TASK 5 ============ -->
+  <section id="task5">
+    <div class="sec-label">Session B · Task 5</div>
+    <h2>Envelope Encryption</h2>
+    <p class="lead">For large data, you don't encrypt with the master key directly. You generate a one-time data key, encrypt locally with it, then wrap the data key with the master key.</p>
+
+    <div class="card">
+      <h3><span class="num">5</span>The commands</h3>
+      <table class="cmds">
+        <tr><th>Command</th><th>What it does</th></tr>
+        <tr><td class="cmd"><code>aws $EP kms generate-data-key --key-id $KEY_A --key-spec AES_256 --query '[Plaintext,CiphertextBlob]' --output text</code></td><td>Asks KMS for a data key. Returns two things: the <b>plaintext</b> key (for local encryption) and the <b>wrapped</b> copy (encrypted by the master key). Save them as <code>datakey.b64</code> and <code>datakey.enc</code>.</td></tr>
+        <tr><td class="cmd"><code>base64 -d datakey.b64 > datakey.bin</code></td><td>Decodes the plaintext data key from base64 to raw binary.</td></tr>
+        <tr><td class="cmd"><code>openssl enc -aes-256-cbc -pbkdf2 -in record.txt -out record.env.enc -pass file:./datakey.bin</code></td><td>Encrypts the record locally using the data key — fast, because AES is fast and the file could be huge.</td></tr>
+        <tr><td class="cmd"><code>rm datakey.bin datakey.b64</code></td><td><b>Destroys the plaintext data key from disk</b> — only the KMS-wrapped copy (<code>datakey.enc</code>) survives. This is the critical step.</td></tr>
+      </table>
+      <div class="why"><b>Why envelope encryption:</b> the master key is small and slow — good for wrapping, bad for bulk data. The data key is fast and one-time — good for bulk data, but short-lived enough that it doesn't need heavy protection.</div>
+    </div>
+  </section>
+
+  <!-- ============ TASK 6 ============ -->
+  <section id="task6">
+    <div class="sec-label">Session B · Task 6</div>
+    <h2>Per-Tenant Keys & Cryptographic Erasure</h2>
+    <p class="lead">Each tenant gets their own master key. Deleting a tenant's key makes their data <b>permanently unrecoverable</b> — provable deletion, even in the cloud.</p>
+
+    <div class="card">
+      <h3><span class="num">6</span>The commands</h3>
+      <table class="cmds">
+        <tr><th>Command</th><th>What it does</th></tr>
+        <tr><td class="cmd"><code>aws $EP kms create-key --description 'CCSE tenant-B master key'</code></td><td>Creates a second master key for tenant B — proves one tenant's key can't decrypt another's data.</td></tr>
+        <tr><td class="cmd"><code>aws $EP kms schedule-key-deletion --key-id $KEY_A --pending-window-in-days 7</code></td><td>Schedules tenant A's key for permanent deletion (minimum 7-day waiting period).</td></tr>
+        <tr><td class="cmd"><code>aws $EP kms disable-key --key-id $KEY_A</code></td><td>Disables the key immediately — even before the deletion window, it can't be used.</td></tr>
+        <tr><td class="cmd"><code>aws $EP kms decrypt --ciphertext-blob fileb://datakey.enc 2>&1 | head -3</code></td><td>Attempts to unwrap tenant A's data key — it <b>fails</b>. The key is gone, so the encrypted record is permanently unrecoverable.</td></tr>
+      </table>
+      <div class="danger"><b>Critical point:</b> Once the master key is gone, <code>record.env.enc</code> is just noise — no one, not even the cloud provider, can decrypt it. This is <b>cryptographic erasure</b>: deletion is provable because the key no longer exists.</div>
+    </div>
+  </section>
+
+  <!-- ============ TASK 7 ============ -->
+  <section id="task7">
+    <div class="sec-label">Session B · Task 7</div>
+    <h2>Integrity & Tamper-Evidence</h2>
+    <p class="lead">Encryption protects <b>confidentiality</b>; hashing protects <b>integrity</b>. A hash chain makes a log tamper-evident — any modification is immediately detectable.</p>
+
+    <div class="card">
+      <h3><span class="num">7</span>The commands</h3>
+      <table class="cmds">
+        <tr><th>Command</th><th>What it does</th></tr>
+        <tr><td class="cmd"><code>sha256sum record.txt</code></td><td>Computes the SHA-256 fingerprint of the file — a unique, fixed-length hash.</td></tr>
+        <tr><td class="cmd"><code>cp record.txt tampered.txt; echo 'x' >> tampered.txt</code></td><td>Creates a tampered copy by appending one character.</td></tr>
+        <tr><td class="cmd"><code>sha256sum record.txt tampered.txt</code></td><td>Proves the two hashes differ — even a one-character change produces a completely different hash.</td></tr>
+        <tr><td class="cmd"><code>PREV=0<br>for line in 'login ok' 'file read' 'export data'; do<br>PREV=$(echo -n "$PREV$line" | sha256sum | cut -d' ' -f1)<br>echo "$line | $PREV"<br>done</code></td><td>Builds a <b>hash chain</b>: each log entry includes the hash of the previous entry. Modifying an earlier entry breaks every subsequent link.</td></tr>
+      </table>
+      <div class="why"><b>Why hash chains:</b> in a plain log, an attacker can modify an old entry without detection. In a hash chain, every entry is cryptographically bound to the one before it — tampering is immediately detected by recomputing.</div>
+    </div>
+  </section>
+
+  <!-- ============ QUIZ ============ -->
+  <section id="quiz">
+    <div class="sec-label">Try it</div>
+    <h2>Test yourself: encryption concepts</h2>
+    <p class="lead">Click each question to reveal the answer — these test your understanding of the crypto concepts from Lab 3.</p>
+    <div class="tester">
+      <div class="tester-head"><span class="dot"></span> Lab 3 — Security Concepts Quiz</div>
+
+      <div class="scenario">
+        <button data-v="symmetric"><span class="q">AES-256 uses one key for both encryption and decryption — what's the catch?</span><span class="verdict" style="background:var(--amber-soft);color:var(--amber);">key distribution</span></button>
+        <div class="reveal">🔑 <b>The key-distribution problem.</b> Both parties need the same secret key, but sharing it securely is hard — especially at cloud scale. If the key leaks during transmission, everything encrypted with it is exposed. This is why we move to asymmetric encryption (Task 2) or a KMS (Session B).</div>
+      </div>
+
+      <div class="scenario">
+        <button data-v="asymmetric"><span class="q">In RSA, which key encrypts and which key decrypts?</span><span class="verdict" style="background:var(--blue-soft);color:var(--blue);">public encrypts</span></button>
+        <div class="reveal">🔓 <b>Public key encrypts, private key decrypts.</b> Anyone with the public key can lock data; only the private key owner can unlock it. Signatures flip the roles: private signs, public verifies. This two-key system is the basis of PKI and TLS.</div>
+      </div>
+
+      <div class="scenario">
+        <button data-v="envelope"><span class="q">Why not encrypt data directly with the KMS master key?</span><span class="verdict" style="background:var(--violet-soft);color:var(--violet);">envelope encryption</span></button>
+        <div class="reveal">📦 <b>Envelope encryption.</b> The master key is slow (hardware-protected) and expensive to use for bulk data. Instead, generate a fast one-time data key, encrypt locally with it, and wrap the data key with the master key. The master key only ever encrypts small data keys — never the actual data.</div>
+      </div>
+
+      <div class="scenario">
+        <button data-v="erasure"><span class="q">How does deleting a KMS key make encrypted data permanently unrecoverable?</span><span class="verdict" style="background:var(--rose-soft);color:var(--rose);">cryptographic erasure</span></button>
+        <div class="reveal">💀 <b>Cryptographic erasure.</b> In the cloud, storage is replicated and shared — you can't reliably overwrite every copy. But if you destroy the key that encrypted the data, every copy (including backups) becomes unreadable. Deletion is provable because the key no longer exists.</div>
+      </div>
+
+      <div class="scenario">
+        <button data-v="hash"><span class="q">Why does a hash chain make a log tamper-evident?</span><span class="verdict" style="background:var(--green-soft);color:var(--green);">chain integrity</span></button>
+        <div class="reveal">🔗 <b>Each entry includes the hash of the previous entry.</b> Modifying an earlier entry changes its hash, which breaks every subsequent link in the chain. An auditor can recompute all hashes from the beginning — any mismatch proves tampering occurred.</div>
+      </div>
+
+      <div class="scenario">
+        <button data-v="tls"><span class="q">What does <code>curl -k</code> do, and why is <code>-k</code> unsafe in production?</span><span class="verdict" style="background:var(--teal-soft);color:var(--teal);">TLS verification</span></button>
+        <div class="reveal">🌐 <b><code>-k</code> skips certificate verification.</b> In the lab, we use a self-signed certificate, so curl would reject it without <code>-k</code>. In production, <code>-k</code> is dangerous because it accepts any certificate — including one from a man-in-the-middle attacker. Always use proper CA-signed certificates.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ CLEANUP ============ -->
+  <section id="cleanup">
+    <div class="sec-label">When you're done</div>
+    <h2>Cleanup — leave no trace</h2>
+    <div class="card">
+      <table class="cmds">
+        <tr><th>Command</th><th>What it does</th></tr>
+        <tr><td class="cmd"><code>docker stop tls 2>/dev/null</code></td><td>Stops the nginx TLS container from Task 3.</td></tr>
+        <tr><td class="cmd"><code>rm -f record.* private.pem public.pem key.pem cert.pem datakey.* tampered.txt</code></td><td>Removes all temporary crypto artifacts — ciphertext, keys, certificates.</td></tr>
+        <tr><td class="cmd"><code>docker stop localstack && docker rm localstack</code></td><td>Stops and removes the LocalStack container.</td></tr>
+      </table>
+      <div class="tip"><b>Why clean up?</b> Crypto keys left on disk are a liability. Deleting them is good security hygiene — and keeps Docker from eating your disk.</div>
+    </div>
+  </section>
+
+  <!-- ============ SECURITY CHECKLIST ============ -->
+  <section id="checklist">
+    <div class="sec-label">Verification</div>
+    <h2>Security Best-Practices Checklist</h2>
+    <p class="lead">Every box should be checked before you submit your report.</p>
+    <ul class="checklist">
+      <li><span class="check-icon">✓</span> Data encrypted at rest (AES) and decryption verified.</li>
+      <li><span class="check-icon">✓</span> Asymmetric keys used correctly (encrypt with public, sign with private).</li>
+      <li><span class="check-icon">✓</span> Data protected in transit with TLS.</li>
+      <li><span class="check-icon">✓</span> Envelope encryption used; plaintext data key not left on disk.</li>
+      <li><span class="check-icon">✓</span> Per-tenant keys used; cryptographic erasure demonstrated.</li>
+      <li><span class="check-icon">✓</span> Integrity verified with hashing / hash chain.</li>
+    </ul>
+  </section>
+
+  <!-- ============ TAKEAWAY ============ -->
+  <section id="takeaway">
+    <div class="sec-label">The whole lab in three lines</div>
+    <h2>Key Takeaway</h2>
+    <div class="recap">
+      <div class="card">
+        <h3 style="display:block;">🔐 Session A = <b>Crypto by Hand</b></h3>
+        <p style="font-size:14.5px;color:var(--muted);">AES-256 encrypts data at rest, RSA-2048 proves identity and integrity, and TLS protects data in transit. <b>You see the primitives before the cloud wraps them.</b></p>
+      </div>
+      <div class="card">
+        <h3 style="display:block;">🛡️ Session B = <b>Key Management at Scale</b></h3>
+        <p style="font-size:14.5px;color:var(--muted);">A KMS holds master keys in hardware, generates one-time data keys (envelope encryption), and makes deletion provable (cryptographic erasure). <b>Keys live in the KMS, not on disk.</b></p>
+      </div>
+      <div class="card">
+        <h3 style="display:block;">✅ The Rule</h3>
+        <p style="font-size:14.5px;color:var(--muted);"><b>Encryption is only as strong as its key management.</b> The algorithm is public, but the key is the real secret. Protect keys, rotate them, and destroy them provably when they're no longer needed.</p>
+      </div>
+    </div>
+  </section>
+
+  <footer>Visual explainer for <b>Lab 3/Lab 3.md</b> · based on "Lab 1 Commands Explained" format · IKB 42603 Cloud Computing Security Essentials</footer>
+</div>
+
+<script>
+  document.querySelectorAll('.scenario button').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const sc = btn.closest('.scenario');
+      const wasOpen = sc.classList.contains('open');
+      document.querySelectorAll('.scenario').forEach(s => s.classList.remove('open'));
+      if (!wasOpen) sc.classList.add('open');
+    });
+  });
+</script>
+</body>
+</html>
