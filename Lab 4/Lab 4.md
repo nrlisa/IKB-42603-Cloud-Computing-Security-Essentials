@@ -23,24 +23,38 @@ This lab demonstrates access control and network security across authentication,
 The following architecture models the access control and network security controls implemented across Sessions A and B.
 
 ```text
-              Access Control & Network Security (Lab 4)
-                           │
-        ┌──────────────────┼──────────────────┐
-        │                  │                  │
-   Session A           Session B          Session B
-   AuthN & AuthZ       Network Seg        Hardening
-   Tasks 1–3           Tasks 4–5          Task 6
-        │                  │                  │
-   ┌────┴────┐        ┌────┴────┐        ┌────┴────┐
-   │ Auth    │        │frontend │        │ hardened│
-   │ service │        │  -net   │        │  container│
-   │ :8080   │        │   │     │        │ non-root │
-   │ (nginx) │        │ web→app │        │ read-only│
-   │         │        │   │     │        │ no caps  │
-   │ + TOTP  │        │ app→db  │        │ Trivy    │
-   │ MFA     │        │(blocked │        │ scan     │
-   └─────────┘        │ web→db) │        └──────────┘
-                      └─────────┘
+                   Access Control & Network Security (Lab 4)
+                                    │
+              ┌─────────────────────┼─────────────────────┐
+              │                     │                     │
+     ┌────────┴────────┐   ┌───────┴───────┐   ┌────────┴────────┐
+     │   Session A     │   │   Session B   │   │   Session B     │
+     │  AuthN & AuthZ  │   │  Network Seg  │   │   Hardening     │
+     │   Tasks 1–3     │   │  Tasks 4–5    │   │    Task 6       │
+     └────────┬────────┘   └───────┬───────┘   └────────┬────────┘
+              │                     │                     │
+              │                     │                     │
+   ┌──────────┴──────────┐ ┌───────┴────────┐  ┌────────┴────────┐
+   │                     │ │                │  │                 │
+   │  Auth service       │ │  frontend-net  │  │  hardened       │
+   │  nginx :8080        │ │    │           │  │  container      │
+   │                     │ │    ↓           │  │                 │
+   │  ┌───────────────┐  │ │  web ──→ app  │  │  --user 1000    │
+   │  │ HTTP Basic    │  │ │    │           │  │  --read-only    │
+   │  │ Auth (401/200)│  │ │    ↓           │  │  --cap-drop ALL │
+   │  └───────────────┘  │ │  BLOCKED       │  │  no-new-privs   │
+   │                     │ │  web ✗→ db     │  │                 │
+   │  ┌───────────────┐  │ │                │  │  ┌───────────┐  │
+   │  │ TOTP MFA      │  │ │  backend-net   │  │  │ Trivy     │  │
+   │  │ (oathtool)    │  │ │    │           │  │  │ Vulnerab- │  │
+   │  └───────────────┘  │ │    ↓           │  │  │ ility     │  │
+   │                     │ │  app ──→ db    │  │  │ Scan      │  │
+   │  ┌───────────────┐  │ │  REACHABLE     │  │  └───────────┘  │
+   │  │ RBAC Roles    │  │ │                │  │                 │
+   │  │ can-i checks  │  │ │  Redis (db)    │  │  nginx-unpriv   │
+   │  └───────────────┘  │ │                │  │                 │
+   │                     │ │                │  │                 │
+   └─────────────────────┘ └────────────────┘  └─────────────────┘
 ```
 
 ## Evidence Folder
