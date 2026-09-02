@@ -21,7 +21,7 @@ Welcome to my **Cloud Computing Security Essentials** laboratory repository. Thi
 | Week 2 | Quiz | `QUIZ - W2.pdf` | ✅ Completed |
 | Week 3 | Lab 3 | `Lab3_Encryption_and_Key_Management.md` | ✅ Completed |
 | Week 4 | Lab 4 | `Lab4_Access_Control_and_Network_Security.md` | ✅ Completed |
-| Week 5 | Lab 5 | `Lab5_Monitoring_Logging_and_Incident_Detection.md` | ⏳ Pending |
+| Week 5 | Lab 5 | `Lab5_Monitoring_Logging_and_Incident_Detection.md` | ✅ Completed |
 
 ---
 
